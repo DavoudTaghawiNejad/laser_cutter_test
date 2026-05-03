@@ -25,9 +25,6 @@ class Square:
     def __exit__(self, *arg):
         assert self.finished, 'finish_square not called'
 
-    def save_origin(self):
-        return 'G10 L2 P1 X0   Y0     ; G54  → column 1  (origin at 0 mm)'
-
     def right(self, mm=None):
         if mm is None:
             mm=self.width
@@ -56,10 +53,6 @@ class Square:
         assert mm >= 0
         self.y -= mm
         return self.snippets.move_origin_y.format(mm=mm)
-
-    def next_row(self):
-        distance = self.x
-        return self.up() + '\n' + self.left(mm=distance)
 
     def position(self, column, row):
         undo = self.snippets.undo_origin.format(x=self.undo_x, y=self.undo_y)
