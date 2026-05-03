@@ -1,0 +1,190 @@
+; ================================================
+; RAYFORGE G-CODE - COMMENTED & SECTIONED
+; Material: 0.15 mm Polypropylene
+; 2 Objects: Each is a vertical stack of 8 rounded squares
+; Object 2 is ~5 mm to the right of Object 1
+; All paths use Contour with "Remove Inner Paths" enabled
+; ================================================
+
+G21 ; Set units to millimeters
+G90 ; Absolute positioning
+G54
+M8  ; Turn on air assist / coolant
+T0
+
+; ================================================
+; OBJECT 1 - LEFT COLUMN (X ≈ 0.1–1.2 mm)
+; Stacked rounded squares
+; ================================================
+
+; Rounded square #1 (top)
+G0 X0.145 Y2.17
+M4 S100             ; Laser ON (100% power)
+G1 X1.174 Y2.176 F1500
+G3 X1.215 Y2.424 I-0.151 J0.152 F1500
+G1 X1.145 Y2.47 F1500
+G1 X0.117 Y2.464 F1500
+G3 X0.145 Y2.17 I0.108 J-0.138 F1500
+M5                  ; Laser OFF
+
+; Rounded square #2
+G0 Y1.67
+M4 S100
+G2 X0.117 Y1.964 I0.079 J0.156 F1500
+G1 X1.145 Y1.97 F1500
+G1 X1.215 Y1.924 F1500
+G2 X1.174 Y1.676 I-0.192 J-0.096 F1500
+G1 X0.145 Y1.67 F1500
+M5
+
+; Rounded square #3
+G0 Y2.67
+M4 S100
+G1 X1.174 Y2.676 F1500
+G3 X1.215 Y2.924 I-0.151 J0.152 F1500
+G1 X1.145 Y2.97 F1500
+G1 X0.117 Y2.964 F1500
+G3 X0.145 Y2.67 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #4
+G0 Y3.17
+M4 S100
+G1 X1.174 Y3.176 F1500
+G3 X1.215 Y3.424 I-0.151 J0.152 F1500
+G1 X1.145 Y3.47 F1500
+G1 X0.117 Y3.464 F1500
+G3 X0.145 Y3.17 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #5
+G0 Y3.67
+M4 S100
+G2 X0.117 Y3.964 I0.079 J0.156 F1500
+G1 X1.145 Y3.97 F1500
+G1 X1.215 Y3.924 F1500
+G2 X1.174 Y3.676 I-0.192 J-0.096 F1500
+G1 X0.145 Y3.67 F1500
+M5
+
+; Rounded square #6
+G0 Y4.17
+M4 S100
+G1 X1.174 Y4.176 F1500
+G3 X1.215 Y4.424 I-0.151 J0.152 F1500
+G1 X1.145 Y4.47 F1500
+G1 X0.117 Y4.464 F1500
+G3 X0.145 Y4.17 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #7
+G0 Y4.67
+M4 S100
+G2 X0.117 Y4.964 I0.079 J0.156 F1500
+G1 X1.145 Y4.97 F1500
+G1 X1.215 Y4.924 F1500
+G2 X1.174 Y4.676 I-0.192 J-0.096 F1500
+G1 X0.145 Y4.67 F1500
+M5
+
+; Rounded square #8 (bottom)
+G0 Y5.17
+M4 S100
+G1 X1.174 Y5.176 F1500
+G3 X1.215 Y5.424 I-0.151 J0.152 F1500
+G1 X1.145 Y5.47 F1500
+G1 X0.117 Y5.464 F1500
+G3 X0.145 Y5.17 I0.108 J-0.138 F1500
+M5
+
+; ================================================
+; OBJECT 2 - RIGHT COLUMN (X ≈ 4.7–5.8 mm)
+; Stacked rounded squares – exactly 5 mm to the right
+; ================================================
+
+; Rounded square #1 (top)
+G0 X4.729 Y2.103
+M4 S100
+G1 X5.758 Y2.109 F1500
+G3 X5.798 Y2.357 I-0.151 J0.152 F1500
+G1 X5.729 Y2.404 F1500
+G1 X4.7 Y2.398 F1500
+G3 X4.729 Y2.103 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #2
+G0 Y1.603
+M4 S100
+G2 X4.7 Y1.898 I0.079 J0.156 F1500
+G1 X5.729 Y1.904 F1500
+G1 X5.798 Y1.857 F1500
+G2 X5.758 Y1.609 I-0.192 J-0.096 F1500
+G1 X4.729 Y1.603 F1500
+M5
+
+; Rounded square #3
+G0 Y2.603
+M4 S100
+G1 X5.758 Y2.609 F1500
+G3 X5.798 Y2.857 I-0.151 J0.152 F1500
+G1 X5.729 Y2.904 F1500
+G1 X4.7 Y2.898 F1500
+G3 X4.729 Y2.603 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #4
+G0 Y3.103
+M4 S100
+G1 X5.758 Y3.109 F1500
+G3 X5.798 Y3.357 I-0.151 J0.152 F1500
+G1 X5.729 Y3.404 F1500
+G1 X4.7 Y3.398 F1500
+G3 X4.729 Y3.103 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #5
+G0 Y3.603
+M4 S100
+G2 X4.7 Y3.898 I0.079 J0.156 F1500
+G1 X5.729 Y3.904 F1500
+G1 X5.798 Y3.857 F1500
+G2 X5.758 Y3.609 I-0.192 J-0.096 F1500
+G1 X4.729 Y3.603 F1500
+M5
+
+; Rounded square #6
+G0 Y4.103
+M4 S100
+G1 X5.758 Y4.109 F1500
+G3 X5.798 Y4.357 I-0.151 J0.152 F1500
+G1 X5.729 Y4.404 F1500
+G1 X4.7 Y4.398 F1500
+G3 X4.729 Y4.103 I0.108 J-0.138 F1500
+M5
+
+; Rounded square #7
+G0 Y4.603
+M4 S100
+G2 X4.7 Y4.898 I0.079 J0.156 F1500
+G1 X5.729 Y4.904 F1500
+G1 X5.798 Y4.857 F1500
+G2 X5.758 Y4.609 I-0.192 J-0.096 F1500
+G1 X4.729 Y4.603 F1500
+M5
+
+; Rounded square #8 (bottom)
+G0 Y5.103
+M4 S100
+G1 X5.758 Y5.109 F1500
+G3 X5.798 Y5.357 I-0.151 J0.152 F1500
+G1 X5.729 Y5.404 F1500
+G1 X4.7 Y5.398 F1500
+G3 X4.729 Y5.103 I0.108 J-0.138 F1500
+M5
+
+; ================================================
+; JOB END
+; ================================================
+M9                  ; Turn off air assist / coolant
+M5                  ; Ensure laser is off
+G0 X0 Y0            ; Return to origin
