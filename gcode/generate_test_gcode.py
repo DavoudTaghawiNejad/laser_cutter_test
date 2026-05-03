@@ -16,6 +16,8 @@ class Square:
         self.rows = rows
         self.legend = [['' for x in range(columns)] for y in range(rows)]
         self.finished = False
+        self.undo_x = 0
+        self.undo_y = 0
 
     def __enter__(self):
         return self
@@ -59,13 +61,11 @@ class Square:
         distance = self.x
         return self.up() + '\n' + self.left(mm=distance)
 
-    def back_to_origin(self):
-        self.x = 0
-        self.y = 0
-        return 'G54'
-
     def position(self, column, row):
-        return self.snippets.temp_origin.format(x=self.width * column, y=self.hight * row)
+        undo = self.snippets.undo_origin.format(x=self.undo_x, y=self.undo_y)
+        self.undo_x = self.width * column
+        self.undo_y = self.hight * row
+        return undo + '\n' + self.snippets.temp_origin.format(x=self.width * column, y=self.hight * row)
 
 
     def draw_object(self, power, speed, num_passes):
