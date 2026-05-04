@@ -6,18 +6,19 @@ import plac
 
 
 class Square:
-    def __init__(self, columns, rows, snippet_file, set_origin=True):
+    def __init__(self, columns, rows, snippet_file, job, set_origin=True):
         self.snippets = snippet_file
         self.x = 0
         self.y = 0
-        self.width = self.snippets.width
-        self.hight = self.snippets.hight
+        self.width = job.object_width
+        self.hight = job.object_height
         self.columns = columns
         self.rows = rows
         self.legend = [['' for x in range(columns)] for y in range(rows)]
         self.finished = False
         self.undo_x = 0
         self.undo_y = 0
+        self.object = job.object
 
     def __enter__(self):
         return self
@@ -62,7 +63,7 @@ class Square:
 
 
     def draw_object(self, power, speed, num_passes):
-        return '\n'.join([self.snippets.object.format(power=power, speed=speed) for _ in range(num_passes)])
+        return '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)])
 
 
     def draw_at(self, column, row, power, speed, num_passes):
@@ -97,9 +98,10 @@ class Square:
 @plac.pos('max_passes',type=int)
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int):
     snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
+    job = SimpleNamespace(**yaml.safe_load(open('job.yaml')))
 
     gcode = [snippets.start]
-    with Square(columns=speed_steps, rows=power_steps, snippet_file=snippets) as square:
+    with Square(columns=speed_steps, rows=power_steps, snippet_file=snippets, job=job) as square:
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
