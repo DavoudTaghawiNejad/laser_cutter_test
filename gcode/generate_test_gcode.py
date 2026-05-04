@@ -3,18 +3,26 @@ from types import SimpleNamespace
 import plac
 
 
-
-
+def axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
+    axes = ''
+    for pa in range(max_passes - min_passes + 1):
+        row = 0
+        for ps in range(power_steps):
+            s = f'{pa + 1} - {power_start + power_stepsize * ps:3} ({row})'
+            axes = s + '\n' + axes
+            row += 1
+        axes = '-' * 8 * speed_steps + '\n' + axes
+    axes = '\n\npass - power (n) \n' + axes
+    axes += '         ' + '  '.join([f'{sp:5} ' for sp in range(speed_steps)]) + '\n'
+    axes += '         ' + '  '.join([f'{speed_start + speed_stepsize * sp:6}' for sp in range(speed_steps)])
+    return axes
 class Square:
-    def __init__(self, columns, rows, snippet_file, job, set_origin=True):
+    def __init__(self, snippet_file, job, set_origin=True):
         self.snippets = snippet_file
         self.x = 0
         self.y = 0
         self.width = job.object_width
         self.hight = job.object_height
-        self.columns = columns
-        self.rows = rows
-        self.legend = [['' for x in range(columns)] for y in range(rows)]
         self.finished = False
         self.undo_x = 0
         self.undo_y = 0
@@ -67,7 +75,6 @@ class Square:
 
 
     def draw_at(self, column, row, power, speed, num_passes):
-        self.legend[row][column] = f'power: {int(power)}, speed: {int(speed)}, num_passes: {int(num_passes)}'
         return self.position(column, row) + '\n' + self.draw_object(power, speed, num_passes)
 
     def hard_set_origin(self, x=None, y=None):
@@ -97,6 +104,7 @@ class Square:
 @plac.pos('min_passes',type=int)
 @plac.pos('max_passes',type=int)
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int):
+    print(axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
     snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
     job = SimpleNamespace(**yaml.safe_load(open('job.yaml')))
     assert job.sheet_width > job.object_width * speed_steps, \
@@ -105,7 +113,7 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
             f'required height: {job.object_height * power_steps * (max_passes - min_passes + 1)}'
 
     gcode = [snippets.start]
-    with Square(columns=speed_steps, rows=power_steps, snippet_file=snippets, job=job) as square:
+    with Square(snippet_file=snippets, job=job) as square:
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
