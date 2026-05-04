@@ -71,7 +71,7 @@ class Square:
 
 
     def draw_object(self, power, speed, num_passes):
-        return '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)])
+        return '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
 
 
     def draw_at(self, column, row, power, speed, num_passes):
