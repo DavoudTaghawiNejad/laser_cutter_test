@@ -25,12 +25,12 @@ line_mm_right: |
     G1 X{mm} Y0 F{speed}
     M5
 
-temp_origin: |
+set_origin: |
     G92.1            ; reset G92 offset
     G0 X0 Y0
     G92 X-{x} Y-{y}
 
-undo_origin: |
+undo_set_origin: |
     G92.1
     G0 X0 Y0
     G92 X{x} Y{y}
