@@ -95,18 +95,33 @@ class Square:
                           for i in range(end)])
         return left + line + self.hard_set_origin()
 
-@plac.pos('power_start', type=int, help="Smalles power setting (percent, integer)")
+@plac.pos('power_start', type=int, help="Smallest power setting (percent, integer)")
 @plac.pos('power_stepsize', type=int, help="Power increments")
 @plac.pos('power_steps', type=int, help="Number of power steps")
 @plac.pos('speed_start', type=int, help="Smallest speed setting")
 @plac.pos('speed_stepsize', type=int, help="Speed increments")
 @plac.pos('speed_steps', type=int, help="Number of speed steps")
-@plac.pos('min_passes', type=int, help="Smallest Number of passes")
-@plac.pos('max_passes' ,type=int, help="Highest Number of passes")
-def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int):
+@plac.pos('min_passes', type=int, help="Smallest number of passes")
+@plac.pos('max_passes',type=int, help="Highest number of passes")
+@plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
+def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job'):
+    """ A script that generates a matrix with different power, speed, and pass number combinations.
+
+        'job.yaml' contains the object's gcode and sizes of the object and the sheet. Generate the gcode for the object you want
+        to test in your favorite gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
+        and height. Copy the object to 'job.yaml' and edit M5 and G1, to G5 commands as follows:
+
+        The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
+        from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174 Y2.176 F{speed}'.
+
+        See 'example.yaml' for reference.
+
+        The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
+
+    """
     print(axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
     snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
-    job = SimpleNamespace(**yaml.safe_load(open('job.yaml')))
+    job = SimpleNamespace(**yaml.safe_load(open(f'{job}.yaml')))
     assert job.sheet_width > job.object_width * speed_steps, \
             f'required width: {job.object_width * speed_steps}'
     assert job.sheet_height > job.object_height * power_steps * (max_passes - min_passes + 1), \
