@@ -105,7 +105,16 @@ class Square:
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job'):
-    """ A script that generates a matrix with different power, speed, and pass number combinations.
+    """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
+
+
+        This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
+
+            python generate_test_gcode.py 5 5 7 500 250 10 1 4
+
+            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes
+
+
 
         'job.yaml' contains the object's gcode and sizes of the object and the sheet. Generate the gcode for the object you want
         to test in your favorite gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
