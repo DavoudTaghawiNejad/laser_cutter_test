@@ -8,9 +8,9 @@ start: |
     T0
 
 end: |
-  M9                  ; Turn off air assist / coolant
-  M5                  ; Ensure laser is off
-  G0 X0 Y0            ; Return to origin
+    M9                  ; Turn off air assist / coolant
+    M5                  ; Ensure laser is off
+    G0 X0 Y0            ; Return to origin
 
 
 move_origin_x: |

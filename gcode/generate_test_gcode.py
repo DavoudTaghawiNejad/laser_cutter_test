@@ -99,23 +99,23 @@ class Square:
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int):
     snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
     job = SimpleNamespace(**yaml.safe_load(open('job.yaml')))
+    assert job.sheet_width > job.object_width * speed_steps, \
+            f'required width: {job.object_width * speed_steps}'
+    assert job.sheet_height > job.object_height * power_steps * (max_passes - min_passes + 1), \
+            f'required height: {job.object_height * power_steps * (max_passes - min_passes + 1)}'
 
     gcode = [snippets.start]
     with Square(columns=speed_steps, rows=power_steps, snippet_file=snippets, job=job) as square:
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
-                for column in range(10):
+                for column in range(speed_steps):
                     speed = speed_start + column * speed_stepsize
                     gcode.append(square.draw_at(column, row, power, speed, num_passes))
             gcode.append(square.new_square())
     gcode.append(snippets.end)
 
     open('output.gcode','w').write('\n'.join(gcode))
-
-
-
-
 
 
 if __name__ =="__main__":
