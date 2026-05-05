@@ -148,7 +148,7 @@ class VirtualMachine:
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
-@plac.opt('output', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
+@plac.opt('output', type=str, help="output filename, defaults to 'output.gcode'")
 @plac.flg('laser', help="Switch laser on")
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
              job='job', output='output', laser=False):
