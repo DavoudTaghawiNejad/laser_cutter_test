@@ -20,9 +20,10 @@ move_origin_x: |
 move_origin_y: |
     G92 Y{mm}
 
-line_mm_right: |
+dotted_line: |
+    G1 X{begin} Y0 F{speed}
     M4 S{power}
-    G1 X{mm} Y0 F{speed}
+    G1 X{end} Y0 F{speed}
     M5
 
 set_origin: |

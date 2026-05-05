@@ -116,11 +116,9 @@ class VirtualMachine:
         self.undo_y = 0
 
     def new_square(self, power=20, speed=1500):
-        end = self.sheet_width // self.width
-        self.position(0, self.undo_y / self.hight + 1)
-        for i in range(end):
-            self.gcode += self.snippets.line_mm_right.format(power=power, speed=speed, mm=self.width / 2) + '\n'
-            self.move_origin_right(self.width)
+        self.position(0, None)
+        for i in range(5):
+            self.gcode += self.snippets.dotted_line.format(power=power, speed=speed, begin=4 * i, end=4 * i +2) + '\n'
         self.hard_set_origin(x=0)
 
 @plac.pos('power_start', type=int, help="Smallest power setting (percent, integer)")
