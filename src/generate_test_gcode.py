@@ -2,7 +2,11 @@ import yaml
 from types import SimpleNamespace
 import plac
 from send_to_cutter import LaserStreamer
+from helper import rename_digit_dict
 
+
+MIN_DIGITS = 4
+SPACE = 0.5
 
 def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
     axes = ''
@@ -24,10 +28,11 @@ class VirtualMachine:
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
-            self.digits = yaml.safe_load(digits_file)
+            self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
-        self.width = max(job.object_width, 7)
-        self.height = max(job.object_height, 4)
+        self.num_digits = max(MIN_DIGITS, job.object_width // self.digits['letter_width'])
+        self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + SPACE)
+        self.height = max(job.object_height, self.digits['letter_height'])
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
@@ -110,17 +115,16 @@ class VirtualMachine:
         self.gcode += self.snippets.fence_mark.format(width=self.width, height=self.height)
 
     def write(self, number):
-        assert 0 <= number <= 99
-        if number >= 10:
-            self.gcode += self.digits[f'n{number // 10}0'].format(power=self.axes_power, speed=self.axes_speed)
-        self.gcode += self.digits[f'n{number % 10}'].format(power=self.axes_power, speed=self.axes_speed)
+        if len(str(number)) < self.num_digits:
+            nstring = str(number)
+        else:
+            nstring = str(number / 1000).lstrip("0")[:self.num_digits]
 
-    def write_at(self, column, row, number, second_number=None):
-        self.position(column, row)
-        self.write(number)
-        if second_number is not None:
-            self.position(column, row + 0.5)
-            self.write(second_number)
+        self.gcode += 'G91\n'
+        for digit in nstring:
+            self.gcode += self.digits['space'].format(space=self.digits['letter_space']) + '\n'
+            self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
+        self.gcode += 'G90\n'
 
     def hard_set_origin(self, x=None, y=None):
         """ Sets the current origin to (x, y), if x or y is None current
@@ -194,13 +198,17 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         virtual_machine.mark_fence_post(0, power_stepsize * (max_passes - min_passes + 1) + 1)
         virtual_machine.save('fence')
 
-        for column in range(speed_steps):
-            virtual_machine.write_at(column + 1, 0, column)
+        # Speed axis numbers
+        for column, speed in enumerate([speed_start + step * speed_stepsize for step in range(speed_steps)]):
+            virtual_machine.position(column + 1, 0)
+            virtual_machine.write(speed)
 
+        # Power / passes axis numbers
         row = 0
         for pa in range(min_passes, max_passes + 1):
-            for power_step in range(power_steps):
-                virtual_machine.write_at(0, row + 1, pa, power_step)
+            for power in [power_start + step * power_stepsize for step in range(power_steps)]:
+                virtual_machine.position(0, row + 1)
+                virtual_machine.write(power)
                 row += 1
 
         virtual_machine.hard_set_origin(1, 1)
