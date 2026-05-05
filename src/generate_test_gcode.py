@@ -19,12 +19,12 @@ def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, s
 
 
 class VirtualMachine:
-    def __init__(self, job, filename='output'):
+    def __init__(self, job, output_filename='output'):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
             self.digits = yaml.safe_load(digits_file)
-        self.filename = filename
+        self.output_filename = output_filename
         self.width = max(job.object_width, 7)
         self.height = max(job.object_height, 4)
         self.sheet_width = job.sheet_width
@@ -41,7 +41,7 @@ class VirtualMachine:
 
     def __exit__(self, *arg):
         self.gcode += self.snippets.end
-        with open(f'{self.filename}.gcode','w') as outputfile:
+        with open(f'{self.output_filename}.gcode','w') as outputfile:
             outputfile.write(self.gcode)
 
     def move_origin_right(self, mm=None):
@@ -139,9 +139,11 @@ class VirtualMachine:
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
+@plac.opt('output', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.flg('mock', help="Does not switch laser on")
 @plac.flg('fence', help="Code drives only around perimeter")
-def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job', mock=False, fence=False):
+def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
+             job='job', output='output', mock=False, fence=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -172,7 +174,7 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
     assert job.sheet_height >= (max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1), \
             f'required height: {(max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1)}'
 
-    with VirtualMachine(job=job) as virtual_machine:
+    with VirtualMachine(job=job, output_filename=output) as virtual_machine:
         # outer perimeter
         virtual_machine.write_at(0, 0, number=0)
         virtual_machine.write_at(speed_steps + 1, 0, number=0)
