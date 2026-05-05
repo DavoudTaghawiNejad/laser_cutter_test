@@ -10,6 +10,9 @@ axes_speed: 5000
 
 
 object: |
+    ; object
+    ; ======
+    ;
     ; Rounded square #1 (top)
     G0 X0.145 Y2.17
     M4 S{power}
