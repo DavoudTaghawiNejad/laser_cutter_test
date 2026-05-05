@@ -121,6 +121,17 @@ class VirtualMachine:
             self.gcode += self.snippets.dotted_line.format(power=power, speed=speed, begin=4 * i, end=4 * i +2) + '\n'
         self.hard_set_origin(x=0)
 
+    def remove_power_on_gcode(self):
+        print('Mock code with power of generated')
+        print("Treat test as if laser was enabled!")
+        gcode = [line
+                 for line in self.gcode.split('\n')
+                     if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
+        self.gcode = ('\n').join(gcode)
+
+
+
+
 @plac.pos('power_start', type=int, help="Smallest power setting (percent, integer)")
 @plac.pos('power_stepsize', type=int, help="Power increments")
 @plac.pos('power_steps', type=int, help="Number of power steps")
@@ -130,7 +141,8 @@ class VirtualMachine:
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
-def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job'):
+@plac.flg('mock', help="Does not switch laser on")
+def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job', mock=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -179,6 +191,8 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
                     speed = speed_start + column * speed_stepsize
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
             virtual_machine.new_square()
+        if mock:
+            virtual_machine.remove_power_on_gcode()
 
 if __name__ =="__main__":
     plac.call(generate)
