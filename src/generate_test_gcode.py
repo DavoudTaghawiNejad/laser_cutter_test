@@ -25,14 +25,11 @@ class VirtualMachine:
         with open('digits.yaml') as digits_file:
             self.digits = yaml.safe_load(digits_file)
         self.filename = filename
-        self.x = 0
-        self.y = 0
         self.width = max(job.object_width, 7)
         self.hight = max(job.object_height, 4)
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
-        self.finished = False
         self.undo_x = 0
         self.undo_y = 0
         self.object = job.object
