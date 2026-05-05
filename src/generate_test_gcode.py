@@ -19,9 +19,11 @@ def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, s
 
 
 class VirtualMachine:
-    def __init__(self, job, filename='output', set_origin=True):
-        self.snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
-        self.digits = yaml.safe_load(open('digits.yaml'))
+    def __init__(self, job, filename='output'):
+        with open('snippets.yaml') as snippets_file:
+            self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
+        with open('digits.yaml') as digits_file:
+            self.digits = yaml.safe_load(digits_file)
         self.filename = filename
         self.x = 0
         self.y = 0
@@ -156,15 +158,15 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
 
     """
-    print(axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
+    print(generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
+    with open('job.yaml') as job_file:
+        job = SimpleNamespace(**yaml.safe_load(job_file))
+    assert job.sheet_width >= (max(job.object_width, 7) + 1) * speed_steps, \
+            f'required width: {(max(job.object_width, 7) + 1) * speed_steps}'
+    assert job.sheet_height >= (max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1), \
+            f'required height: {(max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1)}'
 
-    job = SimpleNamespace(**yaml.safe_load(open(f'{job}.yaml')))
-    assert job.sheet_width > job.object_width * speed_steps, \
-            f'required width: {job.object_width * speed_steps}'
-    assert job.sheet_height > job.object_height * power_steps * (max_passes - min_passes + 1), \
-            f'required height: {job.object_height * power_steps * (max_passes - min_passes + 1)}'
-
-    with VirtualMachine(job=job) as virtural_machine:
+    with VirtualMachine(job=job) as virtual_machine:
         for column in range(speed_steps):
             virtural_machine.write_at(column + 1, 0, column)
 
