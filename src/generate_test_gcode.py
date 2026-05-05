@@ -163,22 +163,22 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
     with VirtualMachine(job=job) as virtual_machine:
         for column in range(speed_steps):
-            virtural_machine.write_at(column + 1, 0, column)
+            virtual_machine.write_at(column + 1, 0, column)
 
         row = 0
-        for pa in range(max_passes - min_passes + 1):
+        for pa in range(min_passes, max_passes + 1):
             for power_step in range(power_steps):
-                virtural_machine.write_at(0, row + 1, pa, power_step)
+                virtual_machine.write_at(0, row + 1, pa, power_step)
                 row += 1
 
-        virtural_machine.hard_set_origin(1, 1)
+        virtual_machine.hard_set_origin(1, 1)
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
                 for column in range(speed_steps):
                     speed = speed_start + column * speed_stepsize
-                    virtural_machine.draw_at(column, row, power, speed, num_passes)
-            virtural_machine.new_square()
+                    virtual_machine.draw_at(column, row, power, speed, num_passes)
+            virtual_machine.new_square()
 
 if __name__ =="__main__":
     plac.call(generate)
