@@ -40,9 +40,14 @@ class VirtualMachine:
         return self
 
     def __exit__(self, *arg):
-        self.gcode += self.snippets.end
-        with open(f'{self.output_filename}.gcode','w') as outputfile:
-            outputfile.write(self.gcode)
+        self.save()
+
+    def save(self, output_filename=None):
+        if output_filename is None:
+            output_filename = self.output_filename
+        with open(f'{output_filename}.gcode','w') as outputfile:
+            outputfile.write(self.gcode + self.snippets.end)
+        print(f'{output_filename}.yaml saved')
 
     def move_origin_right(self, mm=None):
         if mm is None:
