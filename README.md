@@ -20,7 +20,8 @@ from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174
 
 See 'example.yaml' for reference, README.md for additional help.
 
-generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
+generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers,
+if mock option is not enabled.
 
 
 The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.

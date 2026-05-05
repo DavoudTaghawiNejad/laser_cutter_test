@@ -161,15 +161,10 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
             python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes
 
-        'job.yaml' contains the object's gcode and sizes of the object and the sheet as well as the power and
-        speed with which the axis is engraved. Generate the gcode for the object you want to test in your favorite
-        gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
-        and height. Copy the object to 'job.yaml' and edit M5 and G1, to G5 commands as follows:
+        See README.md how to change the object that is cut out at different speed, power, and pass numbers.
 
         The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
         from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174 Y2.176 F{speed}'.
-
-        See 'example.yaml' for reference.
 
         generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
 

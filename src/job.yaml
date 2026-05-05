@@ -9,7 +9,7 @@ axes_power: 10
 axes_speed: 5000
 
 
-object: |
+object: |  # usb-c connector footprint
     ; object
     ; ======
     ;
