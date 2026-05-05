@@ -3,12 +3,12 @@ from types import SimpleNamespace
 import plac
 
 
-def axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
+def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
     axes = ''
-    for pa in range(max_passes - min_passes + 1):
+    for pa in range(min_passes, max_passes + 1):
         row = 0
         for ps in range(power_steps):
-            s = f'{pa + 1} - {power_start + power_stepsize * ps:3} ({row})'
+            s = f'{pa} - {power_start + power_stepsize * ps:3} ({row})'
             axes = s + '\n' + axes
             row += 1
         axes = '-' * 8 * speed_steps + '\n' + axes
