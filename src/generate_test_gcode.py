@@ -16,84 +16,98 @@ def axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, 
     axes += '         ' + '  '.join([f'{sp:5} ' for sp in range(speed_steps)]) + '\n'
     axes += '         ' + '  '.join([f'{speed_start + speed_stepsize * sp:6}' for sp in range(speed_steps)])
     return axes
-class Square:
-    def __init__(self, snippet_file, job, set_origin=True):
-        self.snippets = snippet_file
+
+
+class VirtualMachine:
+    def __init__(self, snippets, job, filename='output', set_origin=True):
+        self.snippets = snippets
+        self.filename = filename
         self.x = 0
         self.y = 0
         self.width = job.object_width
         self.hight = job.object_height
+        self.sheet_width = job.sheet_width
         self.finished = False
         self.undo_x = 0
         self.undo_y = 0
         self.object = job.object
+        self.gcode = ''
+        self.gcode += snippets.start
 
     def __enter__(self):
         return self
 
     def __exit__(self, *arg):
-        pass
+        self.gcode += self.snippets.end
+        with open(f'{self.filename}.gcode','w') as outputfile:
+            outputfile.write(self.gcode)
 
-    def right(self, mm=None):
+    def move_origin_right(self, mm=None):
         if mm is None:
             mm=self.width
         assert mm >= 0
         self.x += mm
-        return self.snippets.move_origin_x.format(mm=-mm)
+        self.gcode += self.snippets.move_origin_x.format(mm=-mm)
 
-    def left(self, mm=None):
+    def move_origin_left(self, mm=None):
         if mm is None:
             mm=self.width
         assert mm >= 0
         self.x -= mm
-        return self.snippets.move_origin_x.format(mm=mm)
+        self.gcode += self.snippets.move_origin_x.format(mm=mm)
 
 
-    def up(self, mm=None):
+    def move_origin_up(self, mm=None):
         if mm is None:
             mm=self.hight
         assert mm >= 0
         self.y += mm
-        return self.snippets.move_origin_y.format(mm=-mm)
+        self.gcode += self.snippets.move_origin_y.format(mm=-mm)
 
-    def down(self, mm=None):
+    def move_origin_down(self, mm=None):
         if mm is None:
             mm=self.hight
         assert mm >= 0
         self.y -= mm
-        return self.snippets.move_origin_y.format(mm=mm)
+        self.gcode += self.snippets.move_origin_y.format(mm=mm)
 
-    def position(self, column, row):
-        undo = self.snippets.undo_set_origin.format(x=self.undo_x, y=self.undo_y)
-        self.undo_x = self.width * column
-        self.undo_y = self.hight * row
-        return undo + '\n' + self.snippets.set_origin.format(x=self.width * column, y=self.hight * row)
+    def position(self, column=None, row=None):
+        if column is not None:
+            x = self.width * column
+        else:
+            x = self.undo_x
+        if row is not None:
+            y = self.hight * row
+        else:
+            y = self.undo_y
 
+        self.gcode += self.snippets.undo_set_origin.format(x=self.undo_x, y=self.undo_y) + '\n'
+        self.undo_x = x
+        self.undo_y = y
+        self.gcode += self.snippets.set_origin.format(x=x, y=y) + '\n'
 
     def draw_object(self, power, speed, num_passes):
-        return '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
-
+        self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
 
     def draw_at(self, column, row, power, speed, num_passes):
-        return self.position(column, row) + '\n' + self.draw_object(power, speed, num_passes)
+        self.position(column, row)
+        self.draw_object(power, speed, num_passes)
+        self.gcode += '\n'  # remove !
 
     def hard_set_origin(self, x=None, y=None):
         """ Sets the current origin to (x, y), if x or y is None current
             position is set as origin """
-        if x is None:
-            x = self.undo_y
-        if y is None:
-            y = self.undo_y
+        self.position(x, y)
         self.undo_x = 0
         self.undo_y = 0
-        return self.snippets.set_origin.format(x=x, y=y)
 
     def new_square(self, power=20, speed=1500):
-        end = self.x // self.width
-        left = self.position(0, self.undo_y / self.hight + 1)
-        line = '\n'.join([self.snippets.line_mm_right.format(power=power, speed=speed, mm=self.width / 2) + '\n' + self.right()
-                          for i in range(end)])
-        return left + line + self.hard_set_origin()
+        end = self.sheet_width // self.width
+        self.position(0, self.undo_y / self.hight + 1)
+        for i in range(end):
+            self.gcode += self.snippets.line_mm_right.format(power=power, speed=speed, mm=self.width / 2) + '\n'
+            self.move_origin_right(self.width)
+        self.hard_set_origin(x=0)
 
 @plac.pos('power_start', type=int, help="Smallest power setting (percent, integer)")
 @plac.pos('power_stepsize', type=int, help="Power increments")
@@ -136,18 +150,15 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
     assert job.sheet_height > job.object_height * power_steps * (max_passes - min_passes + 1), \
             f'required height: {job.object_height * power_steps * (max_passes - min_passes + 1)}'
 
-    gcode = [snippets.start]
-    with Square(snippet_file=snippets, job=job) as square:
+    with VirtualMachine(snippets=snippets, job=job) as virtural_machine:
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
                 for column in range(speed_steps):
                     speed = speed_start + column * speed_stepsize
-                    gcode.append(square.draw_at(column, row, power, speed, num_passes))
-            gcode.append(square.new_square())
-    gcode.append(snippets.end)
+                    virtural_machine.draw_at(column, row, power, speed, num_passes)
+            virtural_machine.new_square()
 
-    open('output.gcode','w').write('\n'.join(gcode))
 
 
 if __name__ =="__main__":
