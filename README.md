@@ -10,8 +10,9 @@ This generates gcode to print the gcode object in 'job.yaml' 200 times at differ
 
     python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes
 
-'job.yaml' contains the object's gcode and sizes of the object and the sheet. Generate the gcode for the object you want
-to test in your favorite gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
+'job.yaml' contains the object's gcode and sizes of the object and the sheet as well as the power and
+speed with which the axis is engraved. Generate the gcode for the object you want to test in your favorite
+gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
 and height. Copy the object to 'job.yaml' and edit M5 and G1, to G5 commands as follows:
 
 The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
@@ -46,6 +47,8 @@ Example two_tiny_squares.yaml::
     object_height: 10
     sheet_width: 195
     sheet_height: 285
+    axes_power: 10
+    axes_speed: 5000
 
 
     object: |

@@ -1,0 +1,242 @@
+# G-code dictionary for writing digits within a two-cell layout
+# (each cell 3 mm wide x 4 mm tall, total span X = 0 .. 6).
+# Coordinates are absolute, units in millimetres -- set G90/G21 once at
+# the program level before invoking these snippets.
+#
+# Layout:
+#   - n0 .. n9      : digit RIGHT-aligned in the SECOND cell
+#                     (body in X = 4 .. 6, Y = 0.5 .. 3.5)
+#   - n10 .. n90    : tens digit LEFT-aligned in the FIRST cell
+#                     body in X = 0 .. 2, Y = 0.5 .. 3.5
+#                     ("1" hugs the right edge of the body so all
+#                     tens digits share the same X = 2 right edge)
+#
+# To render any number 10..99, concatenate one tens entry (n10..n90)
+# with one ones entry (n0..n9). E.g. "57" = n50 + n7.
+#
+# Laser convention:
+#   M4 S{power} = laser on (replace {power} with your value, e.g. 255)
+#   M5          = laser off
+#   F1000       = drawing feedrate
+
+n0: |
+  M5
+  G0 X4 Y0.5
+  M4 S{power}
+  G1 X4 Y3.5 F1000
+  G1 X6 Y3.5
+  G1 X6 Y0.5
+  G1 X4 Y0.5
+  M5
+
+n1: |
+  M5
+  G0 X5 Y3
+  M4 S{power}
+  G1 X5.5 Y3.5 F1000
+  G1 X5.5 Y0.5
+  M5
+  G0 X5 Y0.5
+  M4 S{power}
+  G1 X6 Y0.5 F1000
+  M5
+
+n2: |
+  M5
+  G0 X4 Y3.5
+  M4 S{power}
+  G1 X6 Y3.5 F1000
+  G1 X6 Y2
+  G1 X4 Y2
+  G1 X4 Y0.5
+  G1 X6 Y0.5
+  M5
+
+n3: |
+  M5
+  G0 X4 Y3.5
+  M4 S{power}
+  G1 X6 Y3.5 F1000
+  G1 X6 Y0.5
+  G1 X4 Y0.5
+  M5
+  G0 X4 Y2
+  M4 S{power}
+  G1 X6 Y2 F1000
+  M5
+
+n4: |
+  M5
+  G0 X4 Y3.5
+  M4 S{power}
+  G1 X4 Y2 F1000
+  G1 X6 Y2
+  M5
+  G0 X6 Y3.5
+  M4 S{power}
+  G1 X6 Y0.5 F1000
+  M5
+
+n5: |
+  M5
+  G0 X6 Y3.5
+  M4 S{power}
+  G1 X4 Y3.5 F1000
+  G1 X4 Y2
+  G1 X6 Y2
+  G1 X6 Y0.5
+  G1 X4 Y0.5
+  M5
+
+n6: |
+  M5
+  G0 X6 Y3.5
+  M4 S{power}
+  G1 X4 Y3.5 F1000
+  G1 X4 Y0.5
+  G1 X6 Y0.5
+  G1 X6 Y2
+  G1 X4 Y2
+  M5
+
+n7: |
+  M5
+  G0 X4 Y3.5
+  M4 S{power}
+  G1 X6 Y3.5 F1000
+  G1 X6 Y0.5
+  M5
+
+n8: |
+  M5
+  G0 X4 Y0.5
+  M4 S{power}
+  G1 X4 Y3.5 F1000
+  G1 X6 Y3.5
+  G1 X6 Y0.5
+  G1 X4 Y0.5
+  M5
+  G0 X4 Y2
+  M4 S{power}
+  G1 X6 Y2 F1000
+  M5
+
+n9: |
+  M5
+  G0 X4 Y2
+  M4 S{power}
+  G1 X4 Y3.5 F1000
+  G1 X6 Y3.5
+  G1 X6 Y0.5
+  G1 X4 Y0.5
+  M5
+  G0 X4 Y2
+  M4 S{power}
+  G1 X6 Y2 F1000
+  M5
+
+n10: |
+  M5
+  G0 X1 Y3
+  M4 S{power}
+  G1 X1.5 Y3.5 F1000
+  G1 X1.5 Y0.5
+  M5
+  G0 X1 Y0.5
+  M4 S{power}
+  G1 X2 Y0.5 F1000
+  M5
+
+n20: |
+  M5
+  G0 X0 Y3.5
+  M4 S{power}
+  G1 X2 Y3.5 F1000
+  G1 X2 Y2
+  G1 X0 Y2
+  G1 X0 Y0.5
+  G1 X2 Y0.5
+  M5
+
+n30: |
+  M5
+  G0 X0 Y3.5
+  M4 S{power}
+  G1 X2 Y3.5 F1000
+  G1 X2 Y0.5
+  G1 X0 Y0.5
+  M5
+  G0 X0 Y2
+  M4 S{power}
+  G1 X2 Y2 F1000
+  M5
+
+n40: |
+  M5
+  G0 X0 Y3.5
+  M4 S{power}
+  G1 X0 Y2 F1000
+  G1 X2 Y2
+  M5
+  G0 X2 Y3.5
+  M4 S{power}
+  G1 X2 Y0.5 F1000
+  M5
+
+n50: |
+  M5
+  G0 X2 Y3.5
+  M4 S{power}
+  G1 X0 Y3.5 F1000
+  G1 X0 Y2
+  G1 X2 Y2
+  G1 X2 Y0.5
+  G1 X0 Y0.5
+  M5
+
+n60: |
+  M5
+  G0 X2 Y3.5
+  M4 S{power}
+  G1 X0 Y3.5 F1000
+  G1 X0 Y0.5
+  G1 X2 Y0.5
+  G1 X2 Y2
+  G1 X0 Y2
+  M5
+
+n70: |
+  M5
+  G0 X0 Y3.5
+  M4 S{power}
+  G1 X2 Y3.5 F1000
+  G1 X2 Y0.5
+  M5
+
+n80: |
+  M5
+  G0 X0 Y0.5
+  M4 S{power}
+  G1 X0 Y3.5 F1000
+  G1 X2 Y3.5
+  G1 X2 Y0.5
+  G1 X0 Y0.5
+  M5
+  G0 X0 Y2
+  M4 S{power}
+  G1 X2 Y2 F1000
+  M5
+
+n90: |
+  M5
+  G0 X0 Y2
+  M4 S{power}
+  G1 X0 Y3.5 F1000
+  G1 X2 Y3.5
+  G1 X2 Y0.5
+  G1 X0 Y0.5
+  M5
+  G0 X0 Y2
+  M4 S{power}
+  G1 X2 Y2 F1000
+  M5

@@ -19,20 +19,23 @@ def axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, 
 
 
 class VirtualMachine:
-    def __init__(self, snippets, job, filename='output', set_origin=True):
-        self.snippets = snippets
+    def __init__(self, job, filename='output', set_origin=True):
+        self.snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
+        self.digits = yaml.safe_load(open('digits.yaml'))
         self.filename = filename
         self.x = 0
         self.y = 0
-        self.width = job.object_width
-        self.hight = job.object_height
+        self.width = max(job.object_width, 7)
+        self.hight = max(job.object_height, 4)
         self.sheet_width = job.sheet_width
+        self.axes_power = job.axes_power
+        self.axes_speed = job.axes_speed
         self.finished = False
         self.undo_x = 0
         self.undo_y = 0
         self.object = job.object
         self.gcode = ''
-        self.gcode += snippets.start
+        self.gcode += self.snippets.start
 
     def __enter__(self):
         return self
@@ -92,7 +95,19 @@ class VirtualMachine:
     def draw_at(self, column, row, power, speed, num_passes):
         self.position(column, row)
         self.draw_object(power, speed, num_passes)
-        self.gcode += '\n'  # remove !
+
+    def write(self, number):
+        assert number <= 99
+        if number >= 10:
+            self.gcode += self.digits[f'n{number // 10}0'].format(power=self.axes_power, speed=self.axes_speed)
+        self.gcode += self.digits[f'n{number % 10}'].format(power=self.axes_power, speed=self.axes_speed)
+
+    def write_at(self, column, row, first_number=None, second_number=None):
+        self.position(column, row)
+        self.write(first_number)
+        if second_number is not None:
+            self.position(column, row + 0.5)
+            self.write(second_number)
 
     def hard_set_origin(self, x=None, y=None):
         """ Sets the current origin to (x, y), if x or y is None current
@@ -128,10 +143,9 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
             python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes
 
-
-
-        'job.yaml' contains the object's gcode and sizes of the object and the sheet. Generate the gcode for the object you want
-        to test in your favorite gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
+        'job.yaml' contains the object's gcode and sizes of the object and the sheet as well as the power and
+        speed with which the axis is engraved. Generate the gcode for the object you want to test in your favorite
+        gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
         and height. Copy the object to 'job.yaml' and edit M5 and G1, to G5 commands as follows:
 
         The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
@@ -143,14 +157,24 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
     """
     print(axes(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
-    snippets = SimpleNamespace(**yaml.safe_load(open('snippets.yaml')))
+
     job = SimpleNamespace(**yaml.safe_load(open(f'{job}.yaml')))
     assert job.sheet_width > job.object_width * speed_steps, \
             f'required width: {job.object_width * speed_steps}'
     assert job.sheet_height > job.object_height * power_steps * (max_passes - min_passes + 1), \
             f'required height: {job.object_height * power_steps * (max_passes - min_passes + 1)}'
 
-    with VirtualMachine(snippets=snippets, job=job) as virtural_machine:
+    with VirtualMachine(job=job) as virtural_machine:
+        for column in range(speed_steps):
+            virtural_machine.write_at(column + 1, 0, column)
+
+        row = 0
+        for pa in range(max_passes - min_passes + 1):
+            for power_step in range(power_steps):
+                virtural_machine.write_at(0, row + 1, pa, power_step)
+                row += 1
+
+        virtural_machine.hard_set_origin(1, 1)
         for num_passes in range(min_passes, max_passes + 1):
             for row in range(power_steps):
                 power = power_start + row * power_stepsize
@@ -158,8 +182,6 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
                     speed = speed_start + column * speed_stepsize
                     virtural_machine.draw_at(column, row, power, speed, num_passes)
             virtural_machine.new_square()
-
-
 
 if __name__ =="__main__":
     plac.call(generate)
