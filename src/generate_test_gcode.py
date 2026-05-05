@@ -174,6 +174,15 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
             f'required height: {(max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1)}'
 
     with VirtualMachine(job=job) as virtual_machine:
+        # outer perimeter
+        virtual_machine.write_at(0, 0, number=0)
+        virtual_machine.write_at(speed_steps + 1, 0, number=0)
+        virtual_machine.write_at(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
+        virtual_machine.write_at(0, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
+        virtual_machine.remove_power_on_gcode()
+
+
+
         for column in range(speed_steps):
             virtual_machine.write_at(column + 1, 0, column)
 
