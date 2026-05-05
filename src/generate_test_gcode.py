@@ -101,7 +101,7 @@ class VirtualMachine:
             self.gcode += self.digits[f'n{number // 10}0'].format(power=self.axes_power, speed=self.axes_speed)
         self.gcode += self.digits[f'n{number % 10}'].format(power=self.axes_power, speed=self.axes_speed)
 
-    def write_at(self, column, row, first_number=None, second_number=None):
+    def write_at(self, column, row, first_number, second_number=None):
         self.position(column, row)
         self.write(first_number)
         if second_number is not None:
