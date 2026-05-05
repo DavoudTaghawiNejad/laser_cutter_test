@@ -3,7 +3,6 @@ start: |
     G92 X0 Y0
     G21 ; Set units to millimeters
     G90 ; Absolute positioning
-    G54
     M8  ; Turn on air assist / coolant
     T0
 
