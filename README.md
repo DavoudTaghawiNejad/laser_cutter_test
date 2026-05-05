@@ -4,11 +4,11 @@
 
 This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-    python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser
+    python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser --to-cutter
 
 &nbsp;
 
-    python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on]
+    python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on] [--to-cutter sends directly to cutter]
 
 'job.yaml' contains the object's gcode and sizes of the object and the sheet as well as the power and
 speed with which the axis is engraved. Generate the gcode for the object you want to test in your favorite
@@ -37,11 +37,11 @@ positional arguments:
   - `max_passes` -     Highest number of passes
 
 options:
-  -h, --help            show this help message and exit
-  -j, --job job         job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
-  -o, --output output   job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
-  -l, --laser           Switch laser on
-
+  -h, --help              show this help message and exit
+  -j, --job job           job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -o, --output filename   job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -l, --laser             Switch laser on
+  -t, --to-cutter         Operates the lasercutter specfied in machine.yaml directly
 
 # In the following example two squares are printed at various speeds and power and pass settings
 

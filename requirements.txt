@@ -1,0 +1,4 @@
+plac
+pyserial
+pyyaml
+tqdm

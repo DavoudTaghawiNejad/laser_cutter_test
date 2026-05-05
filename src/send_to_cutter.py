@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""
+grbl_streamer.py — Simple G-code streamer for GRBL / Marlin / Smoothieware.
+
+Streams G-code over a serial port using the standard "send-response" protocol
+(one line at a time, wait for `ok` / `error:` before sending the next).
+
+Safety: use as a context manager. On exit — whether the job finishes normally,
+raises an exception, or you Ctrl-C — `close()` runs the configured shutdown
+commands (default: `M5` to turn the laser off) before releasing the port.
+
+Configuration lives in `machine.yaml` (see the example shipped alongside this
+file for the schema):
+
+    with LaserStreamer('machine.yaml') as laser:
+        laser.stream_from_file('job.gcode')
+
+    with LaserStreamer('machine.yaml') as laser:
+        laser.stream(gcode_str)
+
+Requires `pyserial`, `PyYAML`, and `plac` (`pip3 install pyserial PyYAML plac`).
+"""
+
+import re
+import time
+from typing import Iterable, Iterator, Optional, Tuple
+
+import serial
+import yaml
+from tqdm import tqdm as progress
+
+
+class GrblError(Exception):
+    """Raised when the controller returns an `error:` response."""
+
+    def __init__(self, code: str, line: str):
+        self.code = code
+        self.line = line
+        super().__init__(f"Controller returned {code!r} for line: {line!r}")
+
+
+_COMMENT_RE = re.compile(r"\([^)]*\)")  # strip (...) inline G-code comments
+
+
+class LaserStreamer:
+    """Stream G-code to a GRBL-compatible controller, configured from YAML.
+
+    Expected YAML keys:
+
+        port: /dev/ttyUSB0
+        baud: 115200
+        timeout: 2.0
+        wake_delay: 2.0
+    """
+
+    DEFAULT_SHUTDOWN = ("M5",)  # laser off
+
+    def __init__(self, config_path: str):
+        with open(config_path, "r") as f:
+            cfg = yaml.safe_load(f) or {}
+        if not isinstance(cfg, dict):
+            raise ValueError(
+                f"{config_path}: top-level YAML must be a mapping, got {type(cfg).__name__}"
+            )
+        if "port" not in cfg:
+            raise ValueError(f"{config_path}: missing required key 'port'")
+
+        self.port: str = cfg["port"]
+        self.baud: int = cfg.get("baud", 115200)
+        self.timeout: float = cfg.get("timeout", 2.0)
+        self.wake_delay: float = cfg.get("wake_delay", 2.0)
+        self._serial: Optional[serial.Serial] = None
+        print(f"Loaded machine config from {config_path}")
+
+    # --- Lifecycle --------------------------------------------------------
+
+    def open(self) -> "LaserStreamer":
+        """Open the serial port and wake the controller."""
+        self._serial = serial.Serial(self.port, self.baud, timeout=self.timeout)
+        self._serial.write(b"\r\n\r\n")
+        time.sleep(self.wake_delay)
+        self._serial.reset_input_buffer()
+        print(f"Connected to {self.port} @ {self.baud}")
+        return self
+
+    def close(self) -> None:
+        """Run safe-shutdown commands, then close the port. Always safe to call."""
+        if self._serial is None:
+            return
+        try:
+            try:
+                self.send('M5')
+                self.send('G0 X0 Y0')
+            except Exception as e:
+                self._serial.write(b"\x18")   # GRBL soft reset (Ctrl-X)
+                print("Please hit emergency off")
+                print(f"WARNING: safe-shutdown command failed: {e}")
+        finally:
+            self._serial.close()
+
+
+    def __enter__(self) -> "LaserStreamer":
+        return self.open()
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        self.close()
+        return False  # never swallow exceptions
+
+    # --- Sending ----------------------------------------------------------
+
+    def send(self, command: str) -> str:
+        """Send one G-code command and return the controller's `ok`/`error:` line."""
+        if self._serial is None:
+            raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
+        self._serial.write((command.strip() + "\n").encode("ascii"))
+        self._serial.flush()
+        while True:
+            raw = self._serial.readline()
+            if not raw:
+                raise TimeoutError(f"No response from controller for: {command!r}")
+            resp = raw.decode("ascii", errors="replace").strip()
+            if not resp:
+                continue
+            if resp.startswith("ok") or resp.startswith("error"):
+                return resp
+            # Status report or banner — ignore quietly.
+
+    def stream(self, gcode: str):
+        """Stream a multi-line G-code string
+
+        Splits `gcode` on newlines and sends each line one-by-one, waiting for
+        the controller's `ok` after each. Blank lines and comments (`;` line
+        comments and `(...)` inline comments) are stripped. Raises `GrblError`
+        immediately on any `error:` response.
+
+        For a file:  `laser.stream(open('job.gcode').read())`.
+        """
+        i = 0
+        for raw in progress(gcode.splitlines()):
+            line = self._clean(raw)
+            if not line:
+                continue
+            i += 1
+            resp = self.send(line)
+            if resp.startswith("error"):
+                raise GrblError(resp, line)
+
+    def stream_from_file(self, filename):
+        with open(filename) as f:
+            gcode = f.read()
+        self.stream(gcode)
+
+
+    @staticmethod
+    def _clean(line: str) -> str:
+        line = _COMMENT_RE.sub("", line).strip()
+        if not line or line.startswith(";"):
+            return ""
+        return line
+
+
+# --- CLI ------------------------------------------------------------------
+
+def _cli(
+    gcode_file: "Path to .gcode file",
+    config: "Path to machine YAML config" = "machine.yaml",
+):
+    """Stream a G-code file to a GRBL-compatible controller."""
+    with LaserStreamer(config) as laser_cutter:
+        laser_cutter.stream_from_file(gcode_file)
+
+if __name__ == "__main__":
+    import plac
+    plac.call(_cli)

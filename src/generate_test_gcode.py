@@ -1,6 +1,7 @@
 import yaml
 from types import SimpleNamespace
 import plac
+from send_to_cutter import LaserStreamer
 
 
 def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
@@ -19,7 +20,7 @@ def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, s
 
 
 class VirtualMachine:
-    def __init__(self, job, output_filename='output'):
+    def __init__(self, job, to_cutter, output_filename='output'):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
@@ -35,12 +36,16 @@ class VirtualMachine:
         self.object = job.object
         self.gcode = ''
         self.gcode += self.snippets.start
+        self.to_cutter = to_cutter
 
     def __enter__(self):
         return self
 
     def __exit__(self, *arg):
         self.save()
+        if self.to_cutter:
+            with LaserStreamer('machine.yaml') as laser_cutter:
+                laser_cutter.stream(self.gcode + self.snippets.end)
 
     def save(self, output_filename=None):
         if output_filename is None:
@@ -150,18 +155,20 @@ class VirtualMachine:
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.opt('output', type=str, help="output filename, defaults to 'output.gcode'")
 @plac.flg('laser', help="Switch laser on")
+@plac.flg('to_cutter', help="Operates the lasercutter specfied in machine.yaml directly")
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
-             job='job', output='output', laser=False):
+             job='job', output='output', laser=False, to_cutter=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
         This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-            python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser
+            python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser --to-cutter
 
-            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on]
+            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
         See README.md how to change the object that is cut out at different speed, power, and pass numbers.
+        Edit machine.yaml to use 'to_cutter' command.
 
         The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
         from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174 Y2.176 F{speed}'.
@@ -179,7 +186,7 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
     assert job.sheet_height >= (max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1), \
             f'required height: {(max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1)}'
 
-    with VirtualMachine(job=job, output_filename=output) as virtual_machine:
+    with VirtualMachine(job=job, to_cutter=to_cutter, output_filename=output) as virtual_machine:
         # outer perimeter
         virtual_machine.mark_fence_post(0, 0)
         virtual_machine.mark_fence_post(speed_steps + 1, 0)
