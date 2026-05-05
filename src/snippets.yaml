@@ -32,14 +32,14 @@ set_origin: |
     ; ==========
     G92.1            ; reset G92 offset
     G0 X0 Y0
-    G92 X-{x} Y-{y}
+    G92 X{x} Y{y}
 
 undo_set_origin: |
     ; go undo origin
     ; ==============
     G92.1
     G0 X0 Y0
-    G92 X{x} Y{y}
+    G92 X-{x} Y-{y}
 
 fence_mark: |
     ; mark fence
