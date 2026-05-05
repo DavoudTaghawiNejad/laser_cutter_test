@@ -48,29 +48,29 @@ class VirtualMachine:
         if mm is None:
             mm=self.width
         assert mm >= 0
-        self.x += mm
+        self.undo_x += mm
         self.gcode += self.snippets.move_origin_x.format(mm=-mm)
 
     def move_origin_left(self, mm=None):
         if mm is None:
             mm=self.width
         assert mm >= 0
-        self.x -= mm
+        self.undo_x -= mm
         self.gcode += self.snippets.move_origin_x.format(mm=mm)
 
 
     def move_origin_up(self, mm=None):
         if mm is None:
-            mm=self.hight
+            mm=self.height
         assert mm >= 0
-        self.y += mm
+        self.undo_y += mm
         self.gcode += self.snippets.move_origin_y.format(mm=-mm)
 
     def move_origin_down(self, mm=None):
         if mm is None:
-            mm=self.hight
+            mm=self.height
         assert mm >= 0
-        self.y -= mm
+        self.undo_y -= mm
         self.gcode += self.snippets.move_origin_y.format(mm=mm)
 
     def position(self, column=None, row=None):
