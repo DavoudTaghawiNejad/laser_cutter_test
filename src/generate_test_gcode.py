@@ -149,17 +149,17 @@ class VirtualMachine:
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.opt('output', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
-@plac.flg('mock', help="Does not switch laser on")
+@plac.flg('laser', help="Switch laser on")
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
-             job='job', output='output', mock=False):
+             job='job', output='output', laser=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
         This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-            python generate_test_gcode.py 5 5 7 500 250 10 1 4
+            python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser
 
-            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes
+            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on]
 
         See README.md how to change the object that is cut out at different speed, power, and pass numbers.
 
@@ -204,10 +204,11 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
                     speed = speed_start + column * speed_stepsize
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
             virtual_machine.new_square()
-        if mock:
+        if not laser:
             virtual_machine.remove_power_on_gcode()
-        print('Mock code without laser generated')
-        print("Treat test as if laser was enabled!")
+            print("===============================================")
+            print("Laser not switched on generated only movement !")
+            print("===============================================")
 
 if __name__ =="__main__":
     plac.call(generate)
