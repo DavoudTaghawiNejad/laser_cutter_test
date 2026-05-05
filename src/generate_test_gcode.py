@@ -26,7 +26,7 @@ class VirtualMachine:
             self.digits = yaml.safe_load(digits_file)
         self.filename = filename
         self.width = max(job.object_width, 7)
-        self.hight = max(job.object_height, 4)
+        self.height = max(job.object_height, 4)
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
@@ -79,7 +79,7 @@ class VirtualMachine:
         else:
             x = self.undo_x
         if row is not None:
-            y = self.hight * row
+            y = self.height * row
         else:
             y = self.undo_y
 
