@@ -40,3 +40,12 @@ undo_set_origin: |
     G92.1
     G0 X0 Y0
     G92 X{x} Y{y}
+
+fence_mark: |
+    ; mark fence
+    ; ==========
+    G0 X0 Y0
+    G1 X0 Y{height} F1000
+    G1 X{width} Y{height}
+    G1 X{width} Y0
+    G1 X0 Y0

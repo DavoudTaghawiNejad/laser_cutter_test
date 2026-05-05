@@ -100,6 +100,10 @@ class VirtualMachine:
         self.position(column, row)
         self.draw_object(power, speed, num_passes)
 
+    def mark_fence_post(self, column, row):
+        self.position(column, row)
+        self.gcode += self.snippets.fence_mark.format(width=self.width, height=self.height)
+
     def write(self, number):
         assert 0 <= number <= 99
         if number >= 10:
@@ -146,9 +150,8 @@ class VirtualMachine:
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.opt('output', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.flg('mock', help="Does not switch laser on")
-@plac.flg('fence', help="Code drives only around perimeter")
 def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
-             job='job', output='output', mock=False, fence=False):
+             job='job', output='output', mock=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -168,6 +171,8 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
         See 'example.yaml' for reference.
 
+        generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
+
         The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
 
     """
@@ -181,16 +186,11 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
 
     with VirtualMachine(job=job, output_filename=output) as virtual_machine:
         # outer perimeter
-        virtual_machine.write_at(0, 0, number=0)
-        virtual_machine.write_at(speed_steps + 1, 0, number=0)
-        virtual_machine.write_at(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
-        virtual_machine.write_at(0, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
-        virtual_machine.remove_power_on_gcode()
-        if fence:
-            print('Code circumscribes the perimeter without laser')
-            return
-
-
+        virtual_machine.mark_fence_post(0, 0)
+        virtual_machine.mark_fence_post(speed_steps + 1, 0)
+        virtual_machine.mark_fence_post(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1,)
+        virtual_machine.mark_fence_post(0, power_stepsize * (max_passes - min_passes + 1) + 1)
+        virtual_machine.save('fence')
 
         for column in range(speed_steps):
             virtual_machine.write_at(column + 1, 0, column)

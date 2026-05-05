@@ -20,6 +20,9 @@ from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174
 
 See 'example.yaml' for reference, README.md for additional help.
 
+generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
+
+
 The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
 
 positional arguments:
@@ -33,8 +36,10 @@ positional arguments:
   - `max_passes` -     Highest number of passes
 
 options:
-  -h, --help      show this help message and exit
-  -j, --job job   job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -h, --help            show this help message and exit
+  -j, --job job         job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -o, --output output   job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -m, --mock            Does not switch laser on
 
 
 # In the following example two squares are printed at various speeds and power and pass settings
