@@ -96,7 +96,7 @@ class VirtualMachine:
         self.draw_object(power, speed, num_passes)
 
     def write(self, number):
-        assert number <= 99
+        assert 0 <= number <= 99
         if number >= 10:
             self.gcode += self.digits[f'n{number // 10}0'].format(power=self.axes_power, speed=self.axes_speed)
         self.gcode += self.digits[f'n{number % 10}'].format(power=self.axes_power, speed=self.axes_speed)
