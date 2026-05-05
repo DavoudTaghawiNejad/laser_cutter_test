@@ -122,8 +122,6 @@ class VirtualMachine:
         self.hard_set_origin(x=0)
 
     def remove_power_on_gcode(self):
-        print('Mock code with power of generated')
-        print("Treat test as if laser was enabled!")
         gcode = [line
                  for line in self.gcode.split('\n')
                      if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
@@ -142,7 +140,8 @@ class VirtualMachine:
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.flg('mock', help="Does not switch laser on")
-def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job', mock=False):
+@plac.flg('fence', help="Code drives only around perimeter")
+def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int, job='job', mock=False, fence=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -180,6 +179,9 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         virtual_machine.write_at(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
         virtual_machine.write_at(0, power_stepsize * (max_passes - min_passes + 1) + 1, number=0)
         virtual_machine.remove_power_on_gcode()
+        if fence:
+            print('Code circumscribes the perimeter without laser')
+            return
 
 
 
@@ -202,6 +204,8 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
             virtual_machine.new_square()
         if mock:
             virtual_machine.remove_power_on_gcode()
+        print('Mock code without laser generated')
+        print("Treat test as if laser was enabled!")
 
 if __name__ =="__main__":
     plac.call(generate)
