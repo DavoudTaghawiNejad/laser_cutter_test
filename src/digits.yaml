@@ -160,7 +160,7 @@ dash: |
   M5
   G0 Y1.7
   M4 S{power}
-  G1 X1.2 F1000
+  G1 X1.2 F{speed}
   M5
   G0 Y-1.7
 
