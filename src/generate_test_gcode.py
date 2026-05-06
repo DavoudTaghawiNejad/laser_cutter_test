@@ -102,6 +102,8 @@ class VirtualMachine:
         self.x = x
         self.y = y
         self.gcode += self.snippets.set_origin.format(x=x, y=y) + '\n'
+        self.gcode +='G0 X0 Y0\n'
+
 
     def hard_set_origin(self, column=None, row=None):
         if column is not None:
@@ -127,7 +129,6 @@ class VirtualMachine:
         else:
             nstring = str(number / 1000).lstrip("0")[:self.num_digits]
 
-        self.gcode +='G0 X0 Y0\n'
         self.gcode += 'G91\n'
         for digit in nstring:
             self.gcode += self.digits['space'].format(space=self.digits['letter_space']) + '\n'
