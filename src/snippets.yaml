@@ -1,6 +1,5 @@
 
 start: |
-    G92 X0 Y0
     G21 ; Set units to millimeters
     G90 ; Absolute positioning
     M8  ; Turn on air assist / coolant
@@ -9,6 +8,7 @@ start: |
 end: |
     M9                  ; Turn off air assist / coolant
     M5                  ; Ensure laser is off
+    G10 L2 P1 X0 Y0
     G0 X0 Y0            ; Return to origin
 
 
@@ -30,16 +30,11 @@ dotted_line: |
 set_origin: |
     ; set_origin
     ; ==========
-    G92.1            ; reset G92 offset
+    M5
+    G10 L2 P1 X{x} Y{y}
+    G54
+    G90
     G0 X0 Y0
-    G92 X{x} Y{y}
-
-undo_set_origin: |
-    ; go undo origin
-    ; ==============
-    G92.1
-    G0 X0 Y0
-    G92 X-{x} Y-{y}
 
 fence_mark: |
     ; mark fence

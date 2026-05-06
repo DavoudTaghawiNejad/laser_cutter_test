@@ -36,12 +36,14 @@ class VirtualMachine:
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
-        self.undo_x = 0
-        self.undo_y = 0
+        self.x = 0
+        self.y = 0
         self.object = job.object
         self.gcode = ''
         self.gcode += self.snippets.start
         self.to_cutter = to_cutter
+        self.hard_column_offset = 0
+        self.hard_row_offset = 0
 
     def __enter__(self):
         return self
@@ -63,14 +65,14 @@ class VirtualMachine:
         if mm is None:
             mm=self.width
         assert mm >= 0
-        self.undo_x += mm
+        self.x += mm
         self.gcode += self.snippets.move_origin_x.format(mm=-mm)
 
     def move_origin_left(self, mm=None):
         if mm is None:
             mm=self.width
         assert mm >= 0
-        self.undo_x -= mm
+        self.x -= mm
         self.gcode += self.snippets.move_origin_x.format(mm=mm)
 
 
@@ -78,30 +80,35 @@ class VirtualMachine:
         if mm is None:
             mm=self.height
         assert mm >= 0
-        self.undo_y += mm
+        self.y += mm
         self.gcode += self.snippets.move_origin_y.format(mm=-mm)
 
     def move_origin_down(self, mm=None):
         if mm is None:
             mm=self.height
         assert mm >= 0
-        self.undo_y -= mm
+        self.y -= mm
         self.gcode += self.snippets.move_origin_y.format(mm=mm)
 
     def position(self, column=None, row=None):
         if column is not None:
-            x = self.width * column
+            x = self.width * (column + self.hard_column_offset)
         else:
-            x = self.undo_x
+            x = self.x
         if row is not None:
-            y = self.height * row
+            y = self.height * (row + self.hard_row_offset)
         else:
-            y = self.undo_y
-
-        self.gcode += self.snippets.undo_set_origin.format(x=self.undo_x, y=self.undo_y) + '\n'
-        self.undo_x = x
-        self.undo_y = y
+            y = self.y
+        self.x = x
+        self.y = y
         self.gcode += self.snippets.set_origin.format(x=x, y=y) + '\n'
+
+    def hard_set_origin(self, column=None, row=None):
+        if column is not None:
+            self.hard_column_offset = column
+
+        if row is not None:
+            self.hard_row_offset = row
 
     def draw_object(self, power, speed, num_passes):
         self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
@@ -120,24 +127,17 @@ class VirtualMachine:
         else:
             nstring = str(number / 1000).lstrip("0")[:self.num_digits]
 
+        self.gcode +='G0 X0 Y0\n'
         self.gcode += 'G91\n'
         for digit in nstring:
             self.gcode += self.digits['space'].format(space=self.digits['letter_space']) + '\n'
             self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
         self.gcode += 'G90\n'
 
-    def hard_set_origin(self, x=None, y=None):
-        """ Sets the current origin to (x, y), if x or y is None current
-            position is set as origin """
-        self.position(x, y)
-        self.undo_x = 0
-        self.undo_y = 0
-
-    def new_square(self, power=20, speed=1500):
+    def line(self):
         self.position(0, None)
         for i in range(5):
-            self.gcode += self.snippets.dotted_line.format(power=power, speed=speed, begin=4 * i, end=4 * i +2) + '\n'
-        self.hard_set_origin(x=0)
+            self.gcode += self.snippets.dotted_line.format(power=self.axes_power, speed=self.axes_speed, begin=4 * i, end=4 * i +2) + '\n'
 
     def remove_power_on_gcode(self):
         gcode = [line
@@ -212,13 +212,16 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
                 row += 1
 
         virtual_machine.hard_set_origin(1, 1)
+        row = 0
         for num_passes in range(min_passes, max_passes + 1):
-            for row in range(power_steps):
+            for _ in range(power_steps):
                 power = power_start + row * power_stepsize
                 for column in range(speed_steps):
                     speed = speed_start + column * speed_stepsize
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
-            virtual_machine.new_square()
+                row += 1
+            virtual_machine.line()
+
         if not laser:
             virtual_machine.remove_power_on_gcode()
             print("===============================================")

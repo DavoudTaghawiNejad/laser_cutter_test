@@ -165,20 +165,20 @@ dash: |
   G0 Y-1.7
 
 space: |
-  M5         # laser off (defensive, in case previous block left it on)
-  G0 X{space}      # advance by parameter, no draw
+  M5         ; laser off (defensive, in case previous block left it on)
+  G0 X{space}      ; advance by parameter, no draw
 
 spacebar: |
-  M5         # laser off (defensive, in case previous block left it on)
-  G0 X1.2    # advance one letter-width to the right, no draw
+  M5         ; laser off (defensive, in case previous block left it on)
+  G0 X1.2    ; advance one letter-width to the right, no draw
 
 decimaldot: |
     M5
-    G0 X0 Y0.35       # travel to bottom-left corner of the dot
+    G0 X0 Y0.35       ; travel to bottom-left corner of the dot
     M4 S{power}
-    G1 X0.1 F1000     # bottom edge
-    G1 Y0.3           # right edge
-    G1 X-0.1          # top edge
-    G1 Y-0.3          # left edge (closes the square)
+    G1 X0.1 F1000     ; bottom edge
+    G1 Y0.3           ; right edge
+    G1 X-0.1          ; top edge
+    G1 Y-0.3          ; left edge (closes the square)
     M5
     G0 X0.1 Y-0.35
