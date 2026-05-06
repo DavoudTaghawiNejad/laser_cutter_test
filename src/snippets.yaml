@@ -19,14 +19,6 @@ move_origin_x: |
 move_origin_y: |
     G92 Y{mm}           ; move y positon of origin
 
-dotted_line: |
-    ; print dotted line
-    ; =================
-    G1 X{begin} Y0 F{speed}
-    M4 S{power}
-    G1 X{end} Y0 F{speed}
-    M5
-
 set_origin: |
     ; set_origin
     ; ==========

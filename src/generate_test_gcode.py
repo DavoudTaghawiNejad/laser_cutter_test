@@ -136,11 +136,6 @@ class VirtualMachine:
             self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
         self.gcode += 'G90\n'
 
-    def line(self):
-        self.position(0, None)
-        for i in range(5):
-            self.gcode += self.snippets.dotted_line.format(power=self.axes_power, speed=self.axes_speed, begin=4 * i, end=4 * i +2) + '\n'
-
     def remove_power_on_gcode(self):
         gcode = [line
                  for line in self.gcode.split('\n')
@@ -222,7 +217,7 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
                     speed = speed_start + column * speed_stepsize
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
                 row += 1
-            virtual_machine.line()
+
 
         if not laser:
             virtual_machine.remove_power_on_gcode()
