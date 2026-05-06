@@ -123,13 +123,14 @@ class VirtualMachine:
         self.position(column, row)
         self.gcode += self.snippets.fence_mark.format(width=self.width, height=self.height)
 
-    def write(self, number):
+    def write_at(self, column, row, number):
         if len(str(number)) < self.num_digits:
             nstring = str(number)
         else:
             nstring = str(number / 1000).lstrip("0")[:self.num_digits]
-
+        self.position(0, 0)
         self.gcode += 'G91\n'
+        self.gcode += f'G0 X{column * self.width} Y{row * self.height}\n'
         for digit in nstring:
             self.gcode += self.digits['space'].format(space=self.digits['letter_space']) + '\n'
             self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
@@ -198,18 +199,18 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         virtual_machine.mark_fence_post(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1,)
         virtual_machine.mark_fence_post(0, power_stepsize * (max_passes - min_passes + 1) + 1)
         virtual_machine.save('fence')
+        virtual_machine.position(0, 0)
 
         # Speed axis numbers
         for column, speed in enumerate([speed_start + step * speed_stepsize for step in range(speed_steps)]):
-            virtual_machine.position(column + 1, 0)
-            virtual_machine.write(speed)
+            virtual_machine.write_at(column + 1, 0, speed)
 
         # Power / passes axis numbers
         row = 0
         for pa in range(min_passes, max_passes + 1):
             for power in [power_start + step * power_stepsize for step in range(power_steps)]:
                 virtual_machine.position(0, row + 1)
-                virtual_machine.write(power)
+                virtual_machine.write_at(0, row + 1, power)
                 row += 1
 
         virtual_machine.hard_set_origin(1, 1)
