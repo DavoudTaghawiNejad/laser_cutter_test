@@ -177,6 +177,7 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
 
         The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
+        The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
     print(generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))

@@ -25,6 +25,7 @@ if mock option is not enabled.
 
 
 The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
+The gcode viewer at https://nraynaud.github.io/webgcode/ works.o
 
 positional arguments:
   - `power_start` -    Smallest power setting (percent, integer)
