@@ -31,8 +31,8 @@ set_origin: |
 fence_mark: |
     ; mark fence
     ; ==========
-    G0 X0 Y0
-    G1 X0 Y{height} F1000
-    G1 X{width} Y{height}
-    G1 X{width} Y0
-    G1 X0 Y0
+    G0 X0 Y0 F250
+    G1 X0 Y1 F250
+    G1 X1 Y1 F250
+    G1 X1 Y0 F250
+    G1 X0 Y0 F250

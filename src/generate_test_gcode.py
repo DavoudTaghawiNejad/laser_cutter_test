@@ -121,7 +121,7 @@ class VirtualMachine:
 
     def mark_fence_post(self, column, row):
         self.position(column, row)
-        self.gcode += self.snippets.fence_mark.format(width=self.width, height=self.height)
+        self.gcode += self.snippets.fence_mark
 
     def write_at(self, column, row, number):
         if len(str(number)) < self.num_digits:
