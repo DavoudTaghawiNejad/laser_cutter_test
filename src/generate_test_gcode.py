@@ -191,8 +191,8 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         # outer perimeter
         virtual_machine.mark_fence_post(0, 0)
         virtual_machine.mark_fence_post(speed_steps + 1, 0)
-        virtual_machine.mark_fence_post(speed_steps + 1, power_stepsize * (max_passes - min_passes + 1) + 1,)
-        virtual_machine.mark_fence_post(0, power_stepsize * (max_passes - min_passes + 1) + 1)
+        virtual_machine.mark_fence_post(speed_steps + 1, power_steps * (max_passes - min_passes + 1) + 1)
+        virtual_machine.mark_fence_post(0, power_steps * (max_passes - min_passes + 1) + 1)
         virtual_machine.save('fence')
         virtual_machine.position(0, 0)
 
