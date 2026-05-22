@@ -1,11 +1,11 @@
+import math
 import yaml
 from types import SimpleNamespace
 import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
 
-
-MIN_DIGITS = 4
+MIN_DIGITS = 2
 SPACE = 0.5
 
 def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
@@ -30,7 +30,7 @@ class VirtualMachine:
         with open('digits.yaml') as digits_file:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
-        self.num_digits = max(MIN_DIGITS, job.object_width // self.digits['letter_width'])
+        self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
         self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + SPACE)
         self.height = max(job.object_height, self.digits['letter_height'])
         self.sheet_width = job.sheet_width
