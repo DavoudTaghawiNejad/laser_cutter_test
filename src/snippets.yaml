@@ -1,9 +1,14 @@
 
 start: |
+    $X
+    $H
+    $32=1
+    G4 P0.5
     G21 ; Set units to millimeters
     G90 ; Absolute positioning
     M8  ; Turn on air assist / coolant
     T0
+
 
 end: |
     M9                  ; Turn off air assist / coolant
