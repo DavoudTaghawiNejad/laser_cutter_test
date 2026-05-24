@@ -1,26 +1,12 @@
 import math
+from pprint import pprint
 import yaml
 from types import SimpleNamespace
 import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
 
-MIN_DIGITS = 2
-
-
-def generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes):
-    axes = ''
-    for pa in range(min_passes, max_passes + 1):
-        row = 0
-        for ps in range(power_steps):
-            s = f'{pa} - {int(power_start + power_step_size * ps):3} ({row})'
-            axes = s + '\n' + axes
-            row += 1
-        axes = '-' * 8 * speed_steps + '\n' + axes
-    axes = '\n\npass - power (n) \n' + axes
-    axes += '         ' + '  '.join([f'{sp:5} ' for sp in range(speed_steps)]) + '\n'
-    axes += '         ' + '  '.join([f'{int(round(speed_start + speed_step_size * sp, -1)):6}' for sp in range(speed_steps)])
-    return axes
+MIN_DIGITS = 4.3
 
 
 class VirtualMachine:
@@ -36,13 +22,13 @@ class VirtualMachine:
             self.height = max(job.object_height, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
             self.lines = int(sheet_width / self.width)
             self.columns = int(sheet_height / self.height)
+            self.axes_writing = [['' for _ in range(self.lines)] for __ in range(self.columns)]
         else:
             self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
             self.height = max(job.object_height, self.digits['letter_height'])
             self.lines = int(sheet_height / self.height)
             self.columns = int(sheet_width / self.width)
-
-
+            self.axes_writing = [['' for _ in range(self.columns)] for __ in range(self.lines)]
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
         self.x = 0
@@ -137,13 +123,23 @@ class VirtualMachine:
         self.position(column, row)
         self.gcode += self.snippets.fence_mark
 
-    def write_at(self, column, row, number):
+    def write_at(self, column, row, number, prepend=None):
         if self.transpose:
             row, column = column, row
+
+        if prepend is None:
+            self.axes_writing[row][column] = f'{int(number)}'
+        else:
+            self.axes_writing[row][column] = f'{prepend}-{int(number)}'
+
+
         if len(str(number)) < self.num_digits:
             nstring = str(number)
         else:
             nstring = str(number / 1000).lstrip("0")[:self.num_digits]
+
+        if prepend is not None:
+            nstring = f'{prepend}-{nstring}'
         self.position(0, 0)
         self.gcode += 'G91\n'
         self.gcode += f'G0 X{column * self.width} Y{row * self.height}\n'
@@ -157,6 +153,15 @@ class VirtualMachine:
                  for line in self.gcode.split('\n')
                      if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
         self.gcode = ('\n').join(gcode)
+
+    def print_axes_writing(self):
+        for line in reversed(self.axes_writing):
+            for cell in line:
+                try:
+                    print(f'{cell:<6}', end='')
+                except (TypeError, ValueError):
+                    print('.', end='')
+            print()
 
 
 
@@ -217,8 +222,6 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
             speed_steps = int(virtual_machine.columns - 1)  # minus one for axis
             speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
 
-        print(generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes))
-
         if transpose:
             assert job.sheet_width >= (virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
                     f'required width: {(virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
@@ -246,8 +249,10 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         for pa in range(min_passes, max_passes + 1):
             for power in [int(power_start + step * power_step_size) for step in range(power_steps)]:
                 virtual_machine.position(0, row + 1)
-                virtual_machine.write_at(0, row + 1, power)
+                virtual_machine.write_at(0, row + 1, power, prepend=pa)
                 row += 1
+
+        virtual_machine.print_axes_writing()
 
         virtual_machine.hard_set_origin(1, 1)
         row = 0
