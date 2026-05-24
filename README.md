@@ -2,47 +2,49 @@
 # A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
+A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
+
 This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-    python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser --to-cutter
+    python generate_test_gcode.py 50 400 100 10000 1 4 --laser --to-cutter
 
 &nbsp;
 
-    python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on] [--to-cutter sends directly to cutter]
+    python generate_test_gcode.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
-'job.yaml' contains the object's gcode and sizes of the object and the sheet as well as the power and
-speed with which the axis is engraved. Generate the gcode for the object you want to test in your favorite
-gcode generator (lightburn, rayforge ...). Make sure it is close to the origin. Note the width
-and height. Copy the object to 'job.yaml' and edit M5 and G1, to G5 commands as follows:
+See README.md how to change the object that is cut out at different speed, power, and pass numbers.
+Edit machine.yaml to use 'to_cutter' command.
 
 The object's M4 commands must be changed to 'M4 S{POWER}'. The F value of all speed commands (G1 - G5) must be changed:
 from F1234 to F{speed}. For example, 'G1 X1.174 Y2.176 F1500' becomes 'G1 X1.174 Y2.176 F{speed}'.
 
-See 'example.yaml' for reference, README.md for additional help.
-
-generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers,
-if mock option is not enabled.
-
+generated gcode in fence.gcode (which only moves around the cutting aread) and output.gcode which lasers.
 
 The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
-The gcode viewer at https://nraynaud.github.io/webgcode/ works.o
+The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
 positional arguments:
-  - `power_start` -    Smallest power setting (percent, integer)
-  - `power_stepsize` - Power increments
-  - `power_steps` -    Number of power steps
-  - `speed_start` -    Smallest speed setting
-  - `speed_stepsize` - Speed increments
-  - `speed_steps` -    Number of speed steps
-  - `min_passes` -     Smallest number of passes
-  - `max_passes` -     Highest number of passes
+  power_min             Smallest power setting (percent, integer)
+  power_max             Power increments
+  speed_min             Smallest speed setting
+  speed_max             Speed increments
+  min_passes            Smallest number of passes
+  max_passes            Highest number of passes
 
 options:
-  -h, --help              show this help message and exit
-  -j, --job job           job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
-  -o, --output filename   job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
-  -l, --laser             Switch laser on
-  -t, --to-cutter         Operates the lasercutter specfied in machine.yaml directly
+  -h, --help            show this help message and exit
+  -p, --power-steps None
+                        Optional: Number of power steps
+  -s, --speed-steps None
+                        Optional: Number of speed steps
+  -sw, --sheet-width 1  Optional: Fraction of sheet width defined in job yaml
+  -sh, --sheet-height 1
+                        Optional: Fraction of sheet hight defined in job yaml
+  -j, --job job         job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml
+  -o, --output output   output filename, defaults to 'output.gcode'
+  -l, --laser           Switch laser on
+  -c, --to-cutter       Operates the lasercutter specfied in machine.yaml directly
+  -t, --transpose       Reverses power and speed axis
 
 # In the following example two squares are printed at various speeds and power and pass settings
 
