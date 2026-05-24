@@ -6,7 +6,7 @@ import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
 
-MIN_DIGITS = 4.3
+MIN_DIGITS = 4.3  # 0.3 for the dash and space between numbers
 
 
 class VirtualMachine:
@@ -139,7 +139,11 @@ class VirtualMachine:
             nstring = str(number / 1000).lstrip("0")[:self.num_digits]
 
         if prepend is not None:
-            nstring = f'{prepend}-{nstring}'
+            if self.transpose:
+                row += 0.5
+                nstring = f'{prepend}d{nstring}'  # letter d go down and left
+            else:
+                nstring = f'{prepend}-{nstring}'
         self.position(0, 0)
         self.gcode += 'G91\n'
         self.gcode += f'G0 X{column * self.width} Y{row * self.height}\n'

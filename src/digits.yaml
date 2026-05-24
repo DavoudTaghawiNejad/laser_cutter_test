@@ -27,7 +27,7 @@
 
 letter_width: 1.2
 letter_height: 3
-distance_between_letters: 0.5
+distance_between_letters: 0.2
 
 
 n0: |
@@ -163,6 +163,10 @@ dash: |
   G1 X0.3 F{speed}
   M5
   G0 Y-1.7
+
+d: |  # go down
+  M5
+  G0 X-1.5 Y-3.0  ; dow one line down and a letter plus a space left
 
 space: |
   M5         ; laser off (defensive, in case previous block left it on)
