@@ -24,15 +24,20 @@ def generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, 
 
 
 class VirtualMachine:
-    def __init__(self, job, to_cutter, output_filename='output'):
+    def __init__(self, job, to_cutter, output_filename='output', transpose=False):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
         self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
-        self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
-        self.height = max(job.object_height, self.digits['letter_height'])
+        if transpose:
+            self.width = max(job.object_width, self.digits['letter_height'])
+            self.height = max(job.object_height, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
+        else:
+            self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
+            self.height = max(job.object_height, self.digits['letter_height'])
+
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
@@ -44,6 +49,7 @@ class VirtualMachine:
         self.to_cutter = to_cutter
         self.hard_column_offset = 0
         self.hard_row_offset = 0
+        self.transpose = transpose
 
     def __enter__(self):
         return self
@@ -91,6 +97,8 @@ class VirtualMachine:
         self.gcode += self.snippets.move_origin_y.format(mm=mm)
 
     def position(self, column=None, row=None):
+        if self.transpose:
+            row, column = column, row
         if column is not None:
             x = self.width * (column + self.hard_column_offset)
         else:
@@ -106,6 +114,8 @@ class VirtualMachine:
 
 
     def hard_set_origin(self, column=None, row=None):
+        if self.transpose:
+            row, column = column, row
         if column is not None:
             self.hard_column_offset = column
 
@@ -124,6 +134,8 @@ class VirtualMachine:
         self.gcode += self.snippets.fence_mark
 
     def write_at(self, column, row, number):
+        if self.transpose:
+            row, column = column, row
         if len(str(number)) < self.num_digits:
             nstring = str(number)
         else:
@@ -154,14 +166,15 @@ class VirtualMachine:
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.opt('output', type=str, help="output filename, defaults to 'output.gcode'")
 @plac.flg('laser', help="Switch laser on")
-@plac.flg('to_cutter', help="Operates the lasercutter specfied in machine.yaml directly")
+@plac.flg('to_cutter', abbrev='c', help="Operates the lasercutter specfied in machine.yaml directly")
 @plac.opt('power_steps', type=int, help="Optional: Number of power steps")
 @plac.opt('speed_steps', type=int, help="Optional: Number of speed steps")
 @plac.opt('sheet_width', abbrev='sw', type=float, help="Optional: Fraction of sheet width defined in job yaml")
 @plac.opt('sheet_height', abbrev='sh', type=float, help="Optional: Fraction of sheet hight defined in job yaml")
+@plac.flg('transpose', help="Reverses power and speed axis")
 def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
              power_steps=None, speed_steps=None, sheet_width=1, sheet_height=1,
-             job='job', output='output', laser=False, to_cutter=False):
+             job='job', output='output', laser=False, to_cutter=False, transpose=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -189,26 +202,37 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         sheet_width = job.sheet_width * sheet_width
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
-    with VirtualMachine(job=job, to_cutter=to_cutter, output_filename=output) as virtual_machine:
+    with VirtualMachine(job=job, to_cutter=to_cutter, output_filename=output, transpose=transpose) as virtual_machine:
         if power_steps is None:
             power_start = power_min
-            vertical_lines = int(sheet_height / virtual_machine.height)
-            vertical_lines_for_objects = vertical_lines - 1  # minus one for axis
-            power_steps = int(vertical_lines_for_objects / (max_passes - min_passes + 1))
+            if transpose:
+                lines = int(sheet_width / virtual_machine.width)
+            else:
+                lines = int(sheet_height / virtual_machine.height)
+            lines_for_objects = lines - 1  # minus one for axis
+            power_steps = int(lines_for_objects / (max_passes - min_passes + 1))
             power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
         if speed_steps is None:
             speed_start = speed_min
-            horizontal_columns = int(sheet_width / virtual_machine.width)
-            speed_steps = int(horizontal_columns - 1)  # minus one for axis
+            if transpose:
+                columns = int(sheet_height / virtual_machine.height)
+            else:
+                columns = int(sheet_width / virtual_machine.width)
+            speed_steps = int(columns - 1)  # minus one for axis
             speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
 
         print(generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes))
 
-        assert job.sheet_width >= (virtual_machine.width) * (speed_steps + 1), \
-                f'required width: {(virtual_machine.width) * (speed_steps + 1)}'
-        assert job.sheet_height >= (virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
-                f'required height: {(virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
-
+        if transpose:
+            assert job.sheet_width >= (virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
+                    f'required width: {(virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
+            assert job.sheet_height >= (virtual_machine.height) * (speed_steps + 1), \
+                    f'required height: {(virtual_machine.height) * (speed_steps + 1)}'
+        else:
+            assert job.sheet_width >= (virtual_machine.width) * (speed_steps + 1), \
+                    f'required width: {(virtual_machine.width) * (speed_steps + 1)}'
+            assert job.sheet_height >= (virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
+                    f'required height: {(virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
         # outer perimeter
         virtual_machine.mark_fence_post(0, 0)
         virtual_machine.mark_fence_post(speed_steps + 1, 0)
