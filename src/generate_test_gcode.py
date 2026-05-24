@@ -7,18 +7,19 @@ from helper import rename_digit_dict
 
 MIN_DIGITS = 2
 
-def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
+
+def generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes):
     axes = ''
     for pa in range(min_passes, max_passes + 1):
         row = 0
         for ps in range(power_steps):
-            s = f'{pa} - {power_start + power_stepsize * ps:3} ({row})'
+            s = f'{pa} - {int(power_start + power_step_size * ps):3} ({row})'
             axes = s + '\n' + axes
             row += 1
         axes = '-' * 8 * speed_steps + '\n' + axes
     axes = '\n\npass - power (n) \n' + axes
     axes += '         ' + '  '.join([f'{sp:5} ' for sp in range(speed_steps)]) + '\n'
-    axes += '         ' + '  '.join([f'{speed_start + speed_stepsize * sp:6}' for sp in range(speed_steps)])
+    axes += '         ' + '  '.join([f'{int(round(speed_start + speed_step_size * sp, -1)):6}' for sp in range(speed_steps)])
     return axes
 
 
@@ -144,28 +145,31 @@ class VirtualMachine:
 
 
 
-@plac.pos('power_start', type=int, help="Smallest power setting (percent, integer)")
-@plac.pos('power_stepsize', type=int, help="Power increments")
-@plac.pos('power_steps', type=int, help="Number of power steps")
-@plac.pos('speed_start', type=int, help="Smallest speed setting")
-@plac.pos('speed_stepsize', type=int, help="Speed increments")
-@plac.pos('speed_steps', type=int, help="Number of speed steps")
+@plac.pos('power_min', type=int, help="Smallest power setting (percent, integer)")
+@plac.pos('power_max', type=int, help="Power increments")
+@plac.pos('speed_min', type=int, help="Smallest speed setting")
+@plac.pos('speed_max', type=int, help="Speed increments")
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
 @plac.opt('output', type=str, help="output filename, defaults to 'output.gcode'")
 @plac.flg('laser', help="Switch laser on")
 @plac.flg('to_cutter', help="Operates the lasercutter specfied in machine.yaml directly")
-def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:int, speed_stepsize:int, speed_steps:int, min_passes:int, max_passes:int,
+@plac.opt('power_steps', type=int, help="Optional: Number of power steps")
+@plac.opt('speed_steps', type=int, help="Optional: Number of speed steps")
+@plac.opt('sheet_width', abbrev='sw', type=float, help="Optional: Fraction of sheet width defined in job yaml")
+@plac.opt('sheet_height', abbrev='sh', type=float, help="Optional: Fraction of sheet hight defined in job yaml")
+def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
+             power_steps=None, speed_steps=None, sheet_width=1, sheet_height=1,
              job='job', output='output', laser=False, to_cutter=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
         This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-            python generate_test_gcode.py 5 5 7 500 250 10 1 4 --laser --to-cutter
+            python generate_test_gcode.py 50 400 100 10000 1 4 --laser --to-cutter
 
-            python generate_test_gcode.py  power_start  power_stepsize  power_steps  speed_start  speed_stepsize  speed_steps  min_passes  max_passes [--laser switches on] [--to_cutter sends directly to cutter]
+            python generate_test_gcode.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
         See README.md how to change the object that is cut out at different speed, power, and pass numbers.
         Edit machine.yaml to use 'to_cutter' command.
@@ -179,15 +183,32 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
-    print(generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes))
     with open('job.yaml') as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
-    assert job.sheet_width >= (max(job.object_width, 7) + 1) * speed_steps, \
-            f'required width: {(max(job.object_width, 7) + 1) * speed_steps}'
-    assert job.sheet_height >= (max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1), \
-            f'required height: {(max(job.object_height, 4) + 1) * power_steps * (max_passes - min_passes + 1)}'
-
+    if sheet_width <= 1:
+        sheet_width = job.sheet_width * sheet_width
+    if sheet_height <= 1:
+        sheet_height = job.sheet_height * sheet_height
     with VirtualMachine(job=job, to_cutter=to_cutter, output_filename=output) as virtual_machine:
+        if power_steps is None:
+            power_start = power_min
+            vertical_lines = int(sheet_height / virtual_machine.height)
+            vertical_lines_for_objects = vertical_lines - 1  # minus one for axis
+            power_steps = int(vertical_lines_for_objects / (max_passes - min_passes + 1))
+            power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
+        if speed_steps is None:
+            speed_start = speed_min
+            horizontal_columns = int(sheet_width / virtual_machine.width)
+            speed_steps = int(horizontal_columns - 1)  # minus one for axis
+            speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
+
+        print(generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes))
+
+        assert job.sheet_width >= (virtual_machine.width) * (speed_steps + 1), \
+                f'required width: {(virtual_machine.width) * (speed_steps + 1)}'
+        assert job.sheet_height >= (virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
+                f'required height: {(virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
+
         # outer perimeter
         virtual_machine.mark_fence_post(0, 0)
         virtual_machine.mark_fence_post(speed_steps + 1, 0)
@@ -197,13 +218,13 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         virtual_machine.position(0, 0)
 
         # Speed axis numbers
-        for column, speed in enumerate([speed_start + step * speed_stepsize for step in range(speed_steps)]):
+        for column, speed in enumerate([speed_start + step * speed_step_size for step in range(speed_steps)]):
             virtual_machine.write_at(column + 1, 0, speed)
 
         # Power / passes axis numbers
         row = 0
         for pa in range(min_passes, max_passes + 1):
-            for power in [power_start + step * power_stepsize for step in range(power_steps)]:
+            for power in [int(power_start + step * power_step_size) for step in range(power_steps)]:
                 virtual_machine.position(0, row + 1)
                 virtual_machine.write_at(0, row + 1, power)
                 row += 1
@@ -212,9 +233,9 @@ def generate(power_start:int, power_stepsize:int, power_steps:int, speed_start:i
         row = 0
         for num_passes in range(min_passes, max_passes + 1):
             for _ in range(power_steps):
-                power = power_start + row * power_stepsize
+                power = power_start + row * power_step_size
                 for column in range(speed_steps):
-                    speed = speed_start + column * speed_stepsize
+                    speed = int(round(speed_start + column * speed_step_size, -1))
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
                 row += 1
 
