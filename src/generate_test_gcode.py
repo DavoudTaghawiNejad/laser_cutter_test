@@ -24,7 +24,7 @@ def generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, 
 
 
 class VirtualMachine:
-    def __init__(self, job, to_cutter, output_filename='output', transpose=False):
+    def __init__(self, job, to_cutter, sheet_width, sheet_height, output_filename='output', transpose=False):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
@@ -34,11 +34,15 @@ class VirtualMachine:
         if transpose:
             self.width = max(job.object_width, self.digits['letter_height'])
             self.height = max(job.object_height, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
+            self.lines = int(sheet_width / self.width)
+            self.columns = int(sheet_height / self.height)
         else:
             self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
             self.height = max(job.object_height, self.digits['letter_height'])
+            self.lines = int(sheet_height / self.height)
+            self.columns = int(sheet_width / self.width)
 
-        self.sheet_width = job.sheet_width
+
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
         self.x = 0
@@ -202,23 +206,15 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         sheet_width = job.sheet_width * sheet_width
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
-    with VirtualMachine(job=job, to_cutter=to_cutter, output_filename=output, transpose=transpose) as virtual_machine:
+    with VirtualMachine(job=job, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output, transpose=transpose) as virtual_machine:
         if power_steps is None:
             power_start = power_min
-            if transpose:
-                lines = int(sheet_width / virtual_machine.width)
-            else:
-                lines = int(sheet_height / virtual_machine.height)
-            lines_for_objects = lines - 1  # minus one for axis
+            lines_for_objects = virtual_machine.lines - 1  # minus one for axis
             power_steps = int(lines_for_objects / (max_passes - min_passes + 1))
             power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
         if speed_steps is None:
             speed_start = speed_min
-            if transpose:
-                columns = int(sheet_height / virtual_machine.height)
-            else:
-                columns = int(sheet_width / virtual_machine.width)
-            speed_steps = int(columns - 1)  # minus one for axis
+            speed_steps = int(virtual_machine.columns - 1)  # minus one for axis
             speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
 
         print(generate_axes_ascii(power_start, power_step_size, power_steps, speed_start, speed_step_size, speed_steps, min_passes, max_passes))
