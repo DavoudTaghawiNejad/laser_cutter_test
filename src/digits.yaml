@@ -27,7 +27,7 @@
 
 letter_width: 1.2
 letter_height: 3
-letter_space: 0.2
+distance_between_letters: 0.5
 
 
 n0: |
@@ -176,9 +176,9 @@ decimaldot: |
     M5
     G0 X0 Y0.35       ; travel to bottom-left corner of the dot
     M4 S{power}
-    G1 X0.1 F1000     ; bottom edge
-    G1 Y0.3           ; right edge
-    G1 X-0.1          ; top edge
-    G1 Y-0.3          ; left edge (closes the square)
+    G1 X0.1 F{speed}  ; bottom edge
+    G1 Y0.3 F{speed}  ; right edge
+    G1 X-0.1 F{speed} ; top edge
+    G1 Y-0.3 F{speed} ; left edge (closes the square)
     M5
-    G0 X0.1 Y-0.35
+    G0 X0.1 Y-0.35 F{speed}

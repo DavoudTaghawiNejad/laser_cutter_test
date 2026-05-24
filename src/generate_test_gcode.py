@@ -6,7 +6,6 @@ from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
 
 MIN_DIGITS = 2
-SPACE = 0.5
 
 def generate_axes_ascii(power_start, power_stepsize, power_steps, speed_start, speed_stepsize, speed_steps, min_passes, max_passes):
     axes = ''
@@ -31,7 +30,7 @@ class VirtualMachine:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
         self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
-        self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + SPACE)
+        self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
         self.height = max(job.object_height, self.digits['letter_height'])
         self.sheet_width = job.sheet_width
         self.axes_power = job.axes_power
@@ -132,7 +131,7 @@ class VirtualMachine:
         self.gcode += 'G91\n'
         self.gcode += f'G0 X{column * self.width} Y{row * self.height}\n'
         for digit in nstring:
-            self.gcode += self.digits['space'].format(space=self.digits['letter_space']) + '\n'
+            self.gcode += self.digits['space'].format(space=self.digits['distance_between_letters']) + '\n'
             self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
         self.gcode += 'G90\n'
 
