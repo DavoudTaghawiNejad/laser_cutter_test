@@ -112,18 +112,23 @@ class LaserStreamer:
         """Send one G-code command and return the controller's `ok`/`error:` line."""
         if self._serial is None:
             raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
-        self._serial.write((command.strip() + "\n").encode("ascii"))
-        self._serial.flush()
-        while True:
-            raw = self._serial.readline()
-            if not raw:
-                raise TimeoutError(f"No response from controller for: {command!r}")
-            resp = raw.decode("ascii", errors="replace").strip()
-            if not resp:
-                continue
-            if resp.startswith("ok") or resp.startswith("error"):
-                return resp
-            # Status report or banner — ignore quietly.
+        try:
+            self._serial.write((command.strip() + "\n").encode("ascii"))
+            self._serial.flush()
+            while True:
+                raw = self._serial.readline()
+                if not raw:
+                    raise TimeoutError(f"No response from controller for: {command!r}")
+                resp = raw.decode("ascii", errors="replace").strip()
+                if not resp:
+                    continue
+                if resp.startswith("ok") or resp.startswith("error"):
+                    return resp
+        except (Exception, KeyboardInterrupt):
+            self._serial.write(("M5\n").encode("ascii"))
+            self._serial.flush()
+            print("M5 sent (LaserStreamer.send)")
+            raise
 
     def stream(self, gcode: str):
         """Stream a multi-line G-code string
@@ -136,14 +141,18 @@ class LaserStreamer:
         For a file:  `laser.stream(open('job.gcode').read())`.
         """
         i = 0
-        for raw in progress(gcode.splitlines()):
-            line = self._clean(raw)
-            if not line:
-                continue
-            i += 1
-            resp = self.send(line)
-            if resp.startswith("error"):
-                raise GrblError(resp, line)
+        try:
+            for raw in progress(gcode.splitlines()):
+                line = self._clean(raw)
+                if not line:
+                    continue
+                i += 1
+                resp = self.send(line)
+                if resp.startswith("error"):
+                    raise GrblError(resp, line)
+        finally:
+            self.send("M5")
+            print("M5 sent (LaserStreamer.stream)")
 
     def stream_from_file(self, filename):
         with open(filename) as f:
