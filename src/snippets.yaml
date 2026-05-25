@@ -28,9 +28,9 @@ set_origin: |
     ; set_origin
     ; ==========
     M5
+    G90
     G10 L2 P1 X{x} Y{y}
     G54
-    G90
     G0 X0 Y0
 
 fence: |
