@@ -127,16 +127,10 @@ class VirtualMachine:
 
         if prepend is None:
             self.axes_writing[row][column] = f'{int(number)}'
-        else:
-            self.axes_writing[row][column] = f'{prepend}-{int(number)}'
-
-
-        if len(str(number)) < self.num_digits:
             nstring = str(number)
         else:
-            nstring = str(number / 1000).lstrip("0")[:self.num_digits]
-
-        if prepend is not None:
+            self.axes_writing[row][column] = f'{prepend}-{int(number//10)}'
+            nstring = str(number // 10)
             if self.transpose:
                 row += 0.5
                 nstring = f'{prepend}d{nstring}'  # letter d go down and left
