@@ -51,6 +51,7 @@ class LaserStreamer:
         baud: 115200
         timeout: 2.0
         wake_delay: 2.0
+        homeing_timeout: 10.0
     """
 
     DEFAULT_SHUTDOWN = ("M5",)  # laser off
@@ -69,6 +70,7 @@ class LaserStreamer:
         self.baud: int = cfg.get("baud", 115200)
         self.timeout: float = cfg.get("timeout", 2.0)
         self.wake_delay: float = cfg.get("wake_delay", 2.0)
+        self.homeing_timeout: float = cfg.get("homeing_timeout", 10.0)
         self._serial: Optional[serial.Serial] = None
         print(f"Loaded machine config from {config_path}")
 
@@ -112,6 +114,10 @@ class LaserStreamer:
         """Send one G-code command and return the controller's `ok`/`error:` line."""
         if self._serial is None:
             raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
+        if command.upper().startswith('$H'):
+            self._serial.timeout = self.homeing_timeout
+        else:
+            self._serial.timeout = self.timeout
         try:
             self._serial.write((command.strip() + "\n").encode("ascii"))
             self._serial.flush()
