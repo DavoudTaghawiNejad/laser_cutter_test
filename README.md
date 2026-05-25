@@ -6,9 +6,10 @@ A script that generates a gcode matrix with different power, speed, and pass num
 
 This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-    python generate_test_gcode.py 50 400 100 10000 1 4 --laser --to-cutter
+    python generate_test_gcode.py 5 40 100 10000 1 4 --laser --to-cutter
 
 &nbsp;
+
 
     python generate_test_gcode.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
@@ -24,10 +25,10 @@ The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
 The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
 positional arguments:
-  power_min             Smallest power setting (percent, integer)
-  power_max             Power increments
+  power_min             Smallest power setting (percent)
+  power_max             Highest power setting (percent)
   speed_min             Smallest speed setting
-  speed_max             Speed increments
+  speed_max             Highest speed setting
   min_passes            Smallest number of passes
   max_passes            Highest number of passes
 
@@ -44,10 +45,9 @@ options:
   -o, --output output   output filename, defaults to 'output.gcode'
   -l, --laser           Switch laser on
   -c, --to-cutter       Operates the lasercutter specfied in machine.yaml directly
-  -t, --transpose       Reverses power and speed axis
   -f, --fence-only      Only mark the fence
 
-# In the following example two squares are printed at various speeds and power and pass settings
+# In the following example two squares are printed at speeds between 100 and 10000 m/min and power between 5% and 40% and 1 to 4 passes.
 
 Example two_tiny_squares.yaml::
 
@@ -85,4 +85,4 @@ Example two_tiny_squares.yaml::
 
 With the following command line code::
 
-    python generate_test_gcode.py 5 5 7 500 250 10 1 4 --job two_tiny_squares
+    python generate_test_gcode.py 5 40 100 10000 1 4 --laser --to-cutter --job two_tiny_squares

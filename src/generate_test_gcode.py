@@ -109,10 +109,10 @@ class VirtualMachine:
                     print('.', end='')
             print()
 
-@plac.pos('power_min', type=int, help="Smallest power setting (percent, integer)")
-@plac.pos('power_max', type=int, help="Power increments")
+@plac.pos('power_min', type=int, help="Smallest power setting (percent)")
+@plac.pos('power_max', type=int, help="Highest power setting (percent)")
 @plac.pos('speed_min', type=int, help="Smallest speed setting")
-@plac.pos('speed_max', type=int, help="Speed increments")
+@plac.pos('speed_max', type=int, help="Highest speed setting")
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
 @plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
@@ -148,6 +148,8 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
+    power_max = power_max * 10
+    power_min = power_min * 10
     with open('job.yaml') as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
     if sheet_width <= 1:
@@ -182,7 +184,8 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         # Power / passes axis numbers
         column = 0
         for pa in range(min_passes, max_passes + 1):
-            for power in [int(power_start + step * power_step_size) for step in range(power_steps)]:
+            for step in range(power_steps):
+                power = int(round(power_start + step * power_step_size, -1))
                 virtual_machine.write_at(0, column, power, prepend=pa)
                 column += 1
 
@@ -192,7 +195,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         column = 0
         for num_passes in range(min_passes, max_passes + 1):
             for _ in range(power_steps):
-                power = power_start + column * power_step_size
+                power = int(round(power_start + column * power_step_size, -1))
                 for row in range(speed_steps):
                     speed = int(round(speed_start + row * speed_step_size, -1))
                     virtual_machine.draw_at(row, column, power, speed, num_passes)
