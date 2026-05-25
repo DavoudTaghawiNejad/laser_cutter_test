@@ -72,7 +72,6 @@ class VirtualMachine:
         self.x -= mm
         self.gcode += self.snippets.move_origin_x.format(mm=mm)
 
-
     def move_origin_up(self, mm=None):
         if mm is None:
             mm=self.height
@@ -201,6 +200,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
+    transpose = not transpose
     with open('job.yaml') as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
     if sheet_width <= 1:
