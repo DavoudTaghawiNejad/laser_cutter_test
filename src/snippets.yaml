@@ -16,14 +16,6 @@ end: |
     G10 L2 P1 X0 Y0
     G0 X0 Y0            ; Return to origin
 
-
-move_origin_x: |
-    G92 X{mm}           ; move x positon of origin
-
-
-move_origin_y: |
-    G92 Y{mm}           ; move y positon of origin
-
 set_origin: |
     ; set_origin
     ; ==========
