@@ -117,9 +117,8 @@ class VirtualMachine:
         self.position(column, row)
         self.draw_object(power, speed, num_passes)
 
-    def mark_fence_post(self, column, row):
-        self.position(column, row)
-        self.gcode += self.snippets.fence_mark
+    def mark_fence_posts(self, column, row):
+        self.gcode += self.snippets.fence.format(x=self.width * (column + 1) + self.axis_width, y=self.height * (row + 1) + self.axis_height, speed=250) + '\n'
 
     def write_at(self, column, row, number, prepend=None):
         if self.transpose:
@@ -224,18 +223,18 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
                     f'required width: {(virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
             assert job.sheet_height >= (virtual_machine.height) * (speed_steps + 1), \
                     f'required height: {(virtual_machine.height) * (speed_steps + 1)}'
+
         else:
             assert job.sheet_width >= (virtual_machine.width) * (speed_steps + 1), \
                     f'required width: {(virtual_machine.width) * (speed_steps + 1)}'
             assert job.sheet_height >= (virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
                     f'required height: {(virtual_machine.height) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
-        # outer perimeter
-        virtual_machine.mark_fence_post(0, 0)
-        virtual_machine.mark_fence_post(speed_steps + 1, 0)
-        virtual_machine.mark_fence_post(speed_steps + 1, power_steps * (max_passes - min_passes + 1) + 1)
-        virtual_machine.mark_fence_post(0, power_steps * (max_passes - min_passes + 1) + 1)
+
+        if transpose:
+            virtual_machine.mark_fence_posts(power_steps * (max_passes - min_passes + 1), speed_steps)
+        else:
+            virtual_machine.mark_fence_posts(speed_steps, power_steps * (max_passes - min_passes + 1))
         virtual_machine.save('fence')
-        virtual_machine.position(0, 0)
 
         # Speed axis numbers
         for column, speed in enumerate([speed_start + step * speed_step_size for step in range(speed_steps)]):
@@ -260,7 +259,6 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
                     speed = int(round(speed_start + column * speed_step_size, -1))
                     virtual_machine.draw_at(column, row, power, speed, num_passes)
                 row += 1
-
 
         if not laser:
             virtual_machine.remove_power_on_gcode()

@@ -33,11 +33,10 @@ set_origin: |
     G90
     G0 X0 Y0
 
-fence_mark: |
-    ; mark fence
-    ; ==========
-    G0 X0 Y0 F250
-    G1 X0 Y1 F250
-    G1 X1 Y1 F250
-    G1 X1 Y0 F250
-    G1 X0 Y0 F250
+fence: |
+    M5
+    G0 X0 Y0 F{speed}    ; mark fence
+    G0 X{x} Y0 F{speed}    ; mark fence
+    G0 X{x} Y{y} F{speed}    ; mark fence
+    G0 X0 Y{y} F{speed}    ; mark fence
+    G0 X0 Y0 F{speed}    ; mark fence
