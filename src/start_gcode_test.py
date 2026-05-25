@@ -70,7 +70,7 @@ class VirtualMachine:
         self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
 
     def mark_fence_posts(self, row, column):
-        self.gcode += self.snippets.fence.format(x=self.width * (column + 1) + self.axis_width, y=self.height * (row + 1) + self.axis_height, speed=250) + '\n'
+        self.gcode += self.snippets.fence.format(x=self.width * column + self.axis_width, y=self.height * row + self.axis_height, speed=250) + '\n'
 
     def write_at(self, row, column, number, prepend=None):
         self.position(0, 0)
