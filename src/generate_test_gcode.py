@@ -142,9 +142,10 @@ class VirtualMachine:
 @plac.opt('sheet_width', abbrev='sw', type=float, help="Optional: Fraction of sheet width defined in job yaml")
 @plac.opt('sheet_height', abbrev='sh', type=float, help="Optional: Fraction of sheet hight defined in job yaml")
 @plac.flg('transpose', help="Reverses power and speed axis")
+@plac.flg('fence_only', help="Only mark the fence")
 def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
              power_steps=None, speed_steps=None, sheet_width=1, sheet_height=1,
-             job='job', output='output', laser=False, to_cutter=False, transpose=False):
+             job='job', output='output', laser=False, to_cutter=False, transpose=False, fence_only=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -201,6 +202,8 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         else:
             virtual_machine.mark_fence_posts(speed_steps, power_steps * (max_passes - min_passes + 1))
         virtual_machine.save('fence')
+        if fence_only:
+            return
 
         # Speed axis numbers
         for column, speed in enumerate([speed_start + step * speed_step_size for step in range(speed_steps)]):

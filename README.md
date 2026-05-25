@@ -45,6 +45,7 @@ options:
   -l, --laser           Switch laser on
   -c, --to-cutter       Operates the lasercutter specfied in machine.yaml directly
   -t, --transpose       Reverses power and speed axis
+  -f, --fence-only      Only mark the fence
 
 # In the following example two squares are printed at various speeds and power and pass settings
 
