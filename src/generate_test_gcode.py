@@ -213,7 +213,6 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         row = 0
         for pa in range(min_passes, max_passes + 1):
             for power in [int(power_start + step * power_step_size) for step in range(power_steps)]:
-                virtual_machine.position(0, row + 1)
                 virtual_machine.write_at(0, row + 1, power, prepend=pa)
                 row += 1
 
