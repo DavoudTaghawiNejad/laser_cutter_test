@@ -17,6 +17,7 @@ class VirtualMachine:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
         self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
+        self.axis_width = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
         if transpose:
             self.width = max(job.object_width, 2 * (self.digits['letter_width']) + self.digits['distance_between_letters'] + self.digits['distance_between_numbers'])
             print(self.width)
@@ -24,12 +25,15 @@ class VirtualMachine:
             self.lines = int(sheet_width / self.width)
             self.columns = int(sheet_height / self.height)
             self.axes_writing = [['' for _ in range(self.lines)] for __ in range(self.columns)]
+            self.axis_height = 2 * self.digits['letter_height']
         else:
             self.width = max(job.object_width, MIN_DIGITS * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
             self.height = max(job.object_height, self.digits['letter_height'])
             self.lines = int(sheet_height / self.height)
             self.columns = int(sheet_width / self.width)
             self.axes_writing = [['' for _ in range(self.columns)] for __ in range(self.lines)]
+            self.axis_height = self.digits['letter_height']
+
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
         self.x = 0
@@ -103,11 +107,8 @@ class VirtualMachine:
         self.gcode +='G0 X0 Y0\n'
 
     def set_machine_origin_to_graph_origin(self):
-        self.hard_column_offset = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
-        if self.transpose:
-            self.hard_row_offset = 2 * self.digits['letter_height']
-        else:
-            self.hard_row_offset = self.digits['letter_height']
+        self.hard_column_offset = self.axis_width
+        self.hard_row_offset = self.axis_height
 
     def draw_object(self, power, speed, num_passes):
         self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
