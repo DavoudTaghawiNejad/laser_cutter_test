@@ -157,6 +157,15 @@ n9: |
   M5
   G0 Y-1.7
 
+l: |  # number 1 left aligned
+  M5
+  G0 Y3     ; number 1 left aligned
+  M4 S{power}
+  G1 Y-2.55
+  M5
+  G0 Y-0.425
+
+
 dash: |
   M5
   G0 Y1.7           ; dash - sign
@@ -167,7 +176,7 @@ dash: |
 
 d: |  # go down
   M5
-  G0 X-1.5 Y-3.0    ; carrier return
+  G0 X-1.6 Y-3.0    ; carrier return
 
 space: |
   M5                ; laser off (defensive, in case previous block left it on)

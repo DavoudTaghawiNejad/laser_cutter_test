@@ -81,8 +81,10 @@ class VirtualMachine:
             nstring = str(number)
             self.gcode += f'G0 X0 Y{self.axis_height + row * self.height}\n'
         else:
-            self.axes_writing[row][column + 1] = f'{prepend}-{int(number//10)}'
+            self.axes_writing[row][column + 1] = f'{prepend}-{int(number // 10)}'
             nstring = str(number // 10)
+            if len(nstring) > 2:
+                nstring = f'l{nstring[1:]}'
             y = self.axis_height / 2
             nstring = f'{prepend}d{nstring}'  # letter d go down and left
             self.gcode += f'G0 X{self.axis_width + column * self.width} Y{y}\n'
