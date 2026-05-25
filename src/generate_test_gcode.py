@@ -62,34 +62,6 @@ class VirtualMachine:
             outputfile.write(self.gcode + self.snippets.end)
         print(f'{output_filename}.yaml saved')
 
-    def move_origin_right(self, mm=None):
-        if mm is None:
-            mm=self.width
-        assert mm >= 0
-        self.x += mm
-        self.gcode += self.snippets.move_origin_x.format(mm=-mm)
-
-    def move_origin_left(self, mm=None):
-        if mm is None:
-            mm=self.width
-        assert mm >= 0
-        self.x -= mm
-        self.gcode += self.snippets.move_origin_x.format(mm=mm)
-
-    def move_origin_up(self, mm=None):
-        if mm is None:
-            mm=self.height
-        assert mm >= 0
-        self.y += mm
-        self.gcode += self.snippets.move_origin_y.format(mm=-mm)
-
-    def move_origin_down(self, mm=None):
-        if mm is None:
-            mm=self.height
-        assert mm >= 0
-        self.y -= mm
-        self.gcode += self.snippets.move_origin_y.format(mm=mm)
-
     def position(self, column=None, row=None):
         if self.transpose:
             row, column = column, row
@@ -110,12 +82,9 @@ class VirtualMachine:
         self.hard_column_offset = self.axis_width
         self.hard_row_offset = self.axis_height
 
-    def draw_object(self, power, speed, num_passes):
-        self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
-
     def draw_at(self, column, row, power, speed, num_passes):
         self.position(column, row)
-        self.draw_object(power, speed, num_passes)
+        self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
 
     def mark_fence_posts(self, column, row):
         self.gcode += self.snippets.fence.format(x=self.width * (column + 1) + self.axis_width, y=self.height * (row + 1) + self.axis_height, speed=250) + '\n'
@@ -157,9 +126,6 @@ class VirtualMachine:
                 except (TypeError, ValueError):
                     print('.', end='')
             print()
-
-
-
 
 @plac.pos('power_min', type=int, help="Smallest power setting (percent, integer)")
 @plac.pos('power_max', type=int, help="Power increments")
