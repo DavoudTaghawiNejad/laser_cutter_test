@@ -33,7 +33,7 @@ distance_between_numbers: 0.7
 
 n0: |
   M5
-  G0 Y0.425
+  G0 Y0.425         ; number 0
   M4 S{power}
   G1 Y2.55 F1000
   G1 X1.2
@@ -44,7 +44,7 @@ n0: |
 
 n1: |
   M5
-  G0 X0.6 Y2.55
+  G0 X0.6 Y2.55     ; number 1
   M4 S{power}
   G1 X0.3 Y0.425 F1000
   G1 Y-2.55
@@ -57,7 +57,7 @@ n1: |
 
 n2: |
   M5
-  G0 Y2.975
+  G0 Y2.975         ; number 2
   M4 S{power}
   G1 X1.2 F1000
   G1 Y-1.275
@@ -69,7 +69,7 @@ n2: |
 
 n3: |
   M5
-  G0 Y2.975
+  G0 Y2.975         ; number 3
   M4 S{power}
   G1 X1.2 F1000
   G1 Y-2.55
@@ -83,7 +83,7 @@ n3: |
 
 n4: |
   M5
-  G0 Y2.975
+  G0 Y2.975         ; number 4
   M4 S{power}
   G1 Y-1.275 F1000
   G1 X1.2
@@ -95,7 +95,7 @@ n4: |
   G0 Y-0.425
 
 n5: |
-  M5
+  M5                 ; number 5
   G0 X1.2 Y2.975
   M4 S{power}
   G1 X-1.2 F1000
@@ -108,7 +108,7 @@ n5: |
 
 n6: |
   M5
-  G0 X1.2 Y2.975
+  G0 X1.2 Y2.975     ; number 6
   M4 S{power}
   G1 X-1.2 F1000
   G1 Y-2.55
@@ -120,7 +120,7 @@ n6: |
 
 n7: |
   M5
-  G0 Y2.975
+  G0 Y2.975         ; number 7
   M4 S{power}
   G1 X1.2 F1000
   G1 Y-2.55
@@ -129,7 +129,7 @@ n7: |
 
 n8: |
   M5
-  G0 Y0.425
+  G0 Y0.425         ; number 8
   M4 S{power}
   G1 Y2.55 F1000
   G1 X1.2
@@ -144,7 +144,7 @@ n8: |
 
 n9: |
   M5
-  G0 Y1.7
+  G0 Y1.7         ; number 9
   M4 S{power}
   G1 Y1.275 F1000
   G1 X1.2
@@ -159,7 +159,7 @@ n9: |
 
 dash: |
   M5
-  G0 Y1.7
+  G0 Y1.7           ; dash - sign
   M4 S{power}
   G1 X0.3 F{speed}
   M5
@@ -178,7 +178,7 @@ spacebar: |
   G0 X1.2    ; advance one letter-width to the right, no draw
 
 decimaldot: |
-    M5
+    M5                ; decimaldot .
     G0 X0 Y0.35       ; travel to bottom-left corner of the dot
     M4 S{power}
     G1 X0.1 F{speed}  ; bottom edge
