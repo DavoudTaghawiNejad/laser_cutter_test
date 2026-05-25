@@ -238,7 +238,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
 
         # Speed axis numbers
         for column, speed in enumerate([speed_start + step * speed_step_size for step in range(speed_steps)]):
-            virtual_machine.write_at(column + 1, 0, speed)
+            virtual_machine.write_at(column + 1, 0, int(round(speed, -1)))
 
         # Power / passes axis numbers
         row = 0
