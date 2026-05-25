@@ -21,7 +21,6 @@ class VirtualMachine:
         self.columns = int(sheet_height / self.height)
         self.axes_writing = [['' for _ in range(self.lines)] for __ in range(self.columns)]
         self.axis_height = 2 * self.digits['letter_height']
-
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
         self.x = 0
@@ -62,7 +61,6 @@ class VirtualMachine:
         self.y = y
         self.gcode += self.snippets.set_origin.format(x=x, y=y) + '\n'
 
-
     def set_machine_origin_to_graph_origin(self):
         self.hard_column_offset = self.axis_width
         self.hard_row_offset = self.axis_height
@@ -97,7 +95,7 @@ class VirtualMachine:
     def remove_power_on_gcode(self):
         gcode = [line
                  for line in self.gcode.split('\n')
-                     if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
+                 if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
         self.gcode = ('\n').join(gcode)
 
     def print_axes_writing(self):
@@ -156,6 +154,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         sheet_width = job.sheet_width * sheet_width
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
+
     with VirtualMachine(job=job, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
         if power_steps is None:
             power_start = power_min
@@ -191,6 +190,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
 
         virtual_machine.print_axes_writing()
 
+        # Draw objects
         virtual_machine.set_machine_origin_to_graph_origin()
         column = 0
         for num_passes in range(min_passes, max_passes + 1):
