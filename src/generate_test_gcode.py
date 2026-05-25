@@ -95,7 +95,7 @@ class VirtualMachine:
     def remove_power_on_gcode(self):
         gcode = [line
                  for line in self.gcode.split('\n')
-                 if not line[0:2] in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42', 'M106']]
+                 if not line[0:2].strip().upper() in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42']]
         self.gcode = ('\n').join(gcode)
 
     def print_axes_writing(self):
