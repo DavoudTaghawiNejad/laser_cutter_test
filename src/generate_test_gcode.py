@@ -6,7 +6,7 @@ import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
 
-MIN_DIGITS = 4.3  # 0.3 for the dash and space between numbers
+MIN_DIGITS = 4
 
 
 class VirtualMachine:
@@ -18,13 +18,14 @@ class VirtualMachine:
         self.output_filename = output_filename
         self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
         if transpose:
-            self.width = max(job.object_width, self.digits['letter_height'])
-            self.height = max(job.object_height, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
+            self.width = max(job.object_width, 2 * (self.digits['letter_width']) + self.digits['distance_between_letters'] + self.digits['distance_between_numbers'])
+            print(self.width)
+            self.height = max(job.object_height, self.digits['letter_height'])
             self.lines = int(sheet_width / self.width)
             self.columns = int(sheet_height / self.height)
             self.axes_writing = [['' for _ in range(self.lines)] for __ in range(self.columns)]
         else:
-            self.width = max(job.object_width, self.num_digits * (self.digits['letter_width']) + self.digits['distance_between_letters'])
+            self.width = max(job.object_width, MIN_DIGITS * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
             self.height = max(job.object_height, self.digits['letter_height'])
             self.lines = int(sheet_height / self.height)
             self.columns = int(sheet_width / self.width)
@@ -90,11 +91,11 @@ class VirtualMachine:
         if self.transpose:
             row, column = column, row
         if column is not None:
-            x = self.width * (column + self.hard_column_offset)
+            x = self.width * column + self.hard_column_offset
         else:
             x = self.x
         if row is not None:
-            y = self.height * (row + self.hard_row_offset)
+            y = self.height * row + self.hard_row_offset
         else:
             y = self.y
         self.x = x
@@ -102,15 +103,12 @@ class VirtualMachine:
         self.gcode += self.snippets.set_origin.format(x=x, y=y) + '\n'
         self.gcode +='G0 X0 Y0\n'
 
-
-    def hard_set_origin(self, column=None, row=None):
+    def set_machine_origin_to_graph_origin(self):
+        self.hard_column_offset = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
         if self.transpose:
-            row, column = column, row
-        if column is not None:
-            self.hard_column_offset = column
-
-        if row is not None:
-            self.hard_row_offset = row
+            self.hard_row_offset = 2 * self.digits['letter_height']
+        else:
+            self.hard_row_offset = self.digits['letter_height']
 
     def draw_object(self, power, speed, num_passes):
         self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
@@ -258,7 +256,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
 
         virtual_machine.print_axes_writing()
 
-        virtual_machine.hard_set_origin(1, 1)
+        virtual_machine.set_machine_origin_to_graph_origin()
         row = 0
         for num_passes in range(min_passes, max_passes + 1):
             for _ in range(power_steps):

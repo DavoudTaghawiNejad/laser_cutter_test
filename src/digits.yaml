@@ -28,6 +28,7 @@
 letter_width: 1.2
 letter_height: 3
 distance_between_letters: 0.2
+distance_between_numbers: 0.7
 
 
 n0: |
