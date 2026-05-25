@@ -119,17 +119,19 @@ class LaserStreamer:
         else:
             self._serial.timeout = self.timeout
         try:
-            self._serial.write((command.strip() + "\n").encode("ascii"))
-            self._serial.flush()
-            while True:
-                raw = self._serial.readline()
-                if not raw:
-                    raise TimeoutError(f"No response from controller for: {command!r}")
-                resp = raw.decode("ascii", errors="replace").strip()
-                if not resp:
-                    continue
-                if resp.startswith("ok") or resp.startswith("error"):
-                    return resp
+            for _ in range(2):
+                self._serial.write((command.strip() + "\n").encode("ascii"))
+                self._serial.flush()
+                while True:
+                    raw = self._serial.readline()
+                    if not raw:
+                        break
+                    resp = raw.decode("ascii", errors="replace").strip()
+                    if not resp:
+                        continue
+                    if resp.startswith("ok") or resp.startswith("error"):
+                        return resp
+            raise TimeoutError(f"No response from controller for: {command!r}")
         except (Exception, KeyboardInterrupt):
             self._serial.write(("M5\n").encode("ascii"))
             self._serial.flush()
