@@ -130,9 +130,9 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
 
         This generates gcode to print the gcode object in 'job.yaml' 200 times at different power, speed, and number of passes settings::
 
-            python generate_test_gcode.py 50 400 100 10000 1 4 --laser --to-cutter
+            python start_gcode_test.py 50 400 100 10000 1 4 --laser --to-cutter
 
-            python generate_test_gcode.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
+            python start_gcode_test.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
         See README.md how to change the object that is cut out at different speed, power, and pass numbers.
         Edit machine.yaml to use 'to_cutter' command.
