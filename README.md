@@ -10,7 +10,6 @@ This generates gcode to print the gcode object in 'job.yaml' 200 times at differ
 
 &nbsp;
 
-
     python generate_test_gcode.py power_min power_max speed_min speed_max min_passes max_passes [--laser switches on] [--to_cutter sends directly to cutter]
 
 See README.md how to change the object that is cut out at different speed, power, and pass numbers.
@@ -25,8 +24,8 @@ The resulting gcode prints, but DOES NOT DISPLAY CORRECTLY IN GCODE VIEWERS.
 The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
 positional arguments:
-  power_min             Smallest power setting (percent)
-  power_max             Highest power setting (percent)
+  power_min             Smallest power setting (percent, accepts one digit after decimal point)
+  power_max             Highest power setting (percent, accepts one digit after decimal point)
   speed_min             Smallest speed setting
   speed_max             Highest speed setting
   min_passes            Smallest number of passes

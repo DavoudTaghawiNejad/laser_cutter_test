@@ -109,8 +109,8 @@ class VirtualMachine:
                     print('.', end='')
             print()
 
-@plac.pos('power_min', type=int, help="Smallest power setting (percent)")
-@plac.pos('power_max', type=int, help="Highest power setting (percent)")
+@plac.pos('power_min', type=float, help="Smallest power setting (percent, accepts one digit after decimal point)")
+@plac.pos('power_max', type=float, help="Highest power setting (percent, accepts one digit after decimal point)")
 @plac.pos('speed_min', type=int, help="Smallest speed setting")
 @plac.pos('speed_max', type=int, help="Highest speed setting")
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
@@ -148,8 +148,8 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
-    power_max = power_max * 10
-    power_min = power_min * 10
+    power_max = int(power_max * 10)
+    power_min = int(power_min * 10)
     with open('job.yaml') as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
     if sheet_width <= 1:
