@@ -16,11 +16,9 @@ class VirtualMachine:
         with open('digits.yaml') as digits_file:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
-        self.num_digits = int(math.ceil(max(MIN_DIGITS, job.object_width // self.digits['letter_width'])))
         self.axis_width = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
         if transpose:
             self.width = max(job.object_width, 2 * (self.digits['letter_width']) + self.digits['distance_between_letters'] + self.digits['distance_between_numbers'])
-            print(self.width)
             self.height = max(job.object_height, self.digits['letter_height'])
             self.lines = int(sheet_width / self.width)
             self.columns = int(sheet_height / self.height)
