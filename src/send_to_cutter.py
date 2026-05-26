@@ -114,7 +114,7 @@ class LaserStreamer:
         """Send one G-code command and return the controller's `ok`/`error:` line."""
         if self._serial is None:
             raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
-        if command.upper().startswith('$H'):
+        if command.upper().startswith('$H') or command.upper().startswith('M0'):
             self._serial.timeout = self.homeing_timeout
         else:
             self._serial.timeout = self.timeout

@@ -28,7 +28,12 @@ set_origin: |
 fence: |
     M5
     G0 X0 Y0 F{speed}    ; mark fence
+    M0 S2
     G0 X{x} Y0 F{speed}    ; mark fence
+    M0 S2
     G0 X{x} Y{y} F{speed}    ; mark fence
+    M0 S2
     G0 X0 Y{y} F{speed}    ; mark fence
+    M0 S2
     G0 X0 Y0 F{speed}    ; mark fence
+    M0 S2
