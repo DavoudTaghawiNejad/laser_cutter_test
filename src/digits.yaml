@@ -174,9 +174,9 @@ dash: |
   M5
   G0 Y-1.7
 
-d: |  # go down
+d: |  # down two digits left
   M5
-  G0 X-1.6 Y-3.0    ; carrier return
+  G0 X-3.0 Y-3.0    ; down two digits left
 
 space: |
   M5                ; laser off (defensive, in case previous block left it on)
