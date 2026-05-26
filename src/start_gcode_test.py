@@ -158,15 +158,12 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         sheet_height = job.sheet_height * sheet_height
 
     with VirtualMachine(job=job, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
-        if power_steps is None:
-            power_start = power_min
-            lines_for_objects = virtual_machine.lines - 1  # minus one for axis
-            power_steps = int(lines_for_objects / (max_passes - min_passes + 1))
-            power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
-        if speed_steps is None:
-            speed_start = speed_min
-            speed_steps = int(virtual_machine.columns - 1)  # minus one for axis
-            speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
+        limit_power_steps = int((virtual_machine.lines - 1 ) / (max_passes - min_passes + 1))
+        power_steps = min(power_steps, limit_power_steps)
+        power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
+
+        speed_steps = min(speed_steps, int(virtual_machine.columns - 1))
+        speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
 
         assert job.sheet_width >= (virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1), \
                 f'required width: {(virtual_machine.width) * ((power_steps) * (max_passes - min_passes + 1) + 1)}'
@@ -179,14 +176,14 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
             return
 
         # Speed axis numbers
-        for row, speed in enumerate([speed_start + step * speed_step_size for step in range(speed_steps)]):
+        for row, speed in enumerate([speed_min + step * speed_step_size for step in range(speed_steps)]):
             virtual_machine.write_at(row, 0, int(round(speed, -1)))
 
         # Power / passes axis numbers
         column = 0
         for pa in range(min_passes, max_passes + 1):
             for step in range(power_steps):
-                power = int(round(power_start + step * power_step_size, -1))
+                power = int(round(power_min + step * power_step_size, -1))
                 virtual_machine.write_at(0, column, power, prepend=pa)
                 column += 1
 
@@ -197,9 +194,9 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         column = 0
         for num_passes in range(min_passes, max_passes + 1):
             for _ in range(power_steps):
-                power = int(round(power_start + column * power_step_size, -1))
+                power = int(round(power_min + column * power_step_size, -1))
                 for row in range(speed_steps):
-                    speed = int(round(speed_start + row * speed_step_size, -1))
+                    speed = int(round(speed_min + row * speed_step_size, -1))
                     virtual_machine.draw_at(row, column, power, speed, num_passes)
                 column += 1
 
