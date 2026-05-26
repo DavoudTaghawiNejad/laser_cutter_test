@@ -8,12 +8,13 @@ from helper import rename_digit_dict
 
 
 class VirtualMachine:
-    def __init__(self, job, to_cutter, sheet_width, sheet_height, output_filename='output'):
+    def __init__(self, job, to_cutter, sheet_width, sheet_height, machine, output_filename):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
+        self.machine = machine
         self.axis_width = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
         self.width = max(job.object_width, 2 * (self.digits['letter_width']) + self.digits['distance_between_letters'] + self.digits['distance_between_numbers'])
         self.height = max(job.object_height, self.digits['letter_height'])
@@ -38,7 +39,7 @@ class VirtualMachine:
     def __exit__(self, *arg):
         self.save()
         if self.to_cutter:
-            with LaserStreamer('machine.yaml') as laser_cutter:
+            with LaserStreamer(self.machine) as laser_cutter:
                 laser_cutter.stream(self.gcode + self.snippets.end)
 
     def save(self, output_filename=None):
@@ -115,7 +116,8 @@ class VirtualMachine:
 @plac.pos('speed_max', type=int, help="Highest speed setting")
 @plac.pos('min_passes', type=int, help="Smallest number of passes")
 @plac.pos('max_passes',type=int, help="Highest number of passes")
-@plac.opt('job', type=str, help="job.yaml contains objects and size, defaults to job for job.yaml, see example.yaml")
+@plac.opt('job', type=str, help="job-yaml contains objects and size. Default: 'job.yaml'")
+@plac.opt('machine', type=str, help="machine-yaml contains machine address, timeouts, and parameters. Default: 'machine.yaml'")
 @plac.opt('output', type=str, help="output filename, defaults to 'output.gcode'")
 @plac.flg('laser', help="Switch laser on")
 @plac.flg('to_cutter', abbrev='c', help="Operates the lasercutter specfied in machine.yaml directly")
@@ -125,8 +127,8 @@ class VirtualMachine:
 @plac.opt('sheet_height', abbrev='sh', type=float, help="Optional: Fraction of sheet hight defined in job yaml")
 @plac.flg('fence_only', help="Only mark the fence")
 def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
-             power_steps=None, speed_steps=None, sheet_width=1, sheet_height=1,
-             job='job', output='output', laser=False, to_cutter=False, fence_only=False):
+             power_steps=99999, speed_steps=99999, sheet_width=1, sheet_height=1,
+             job='job.yaml', machine='machine.yaml', output='output', laser=False, to_cutter=False, fence_only=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -150,14 +152,14 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
     """
     power_max = int(power_max * 10)
     power_min = int(power_min * 10)
-    with open('job.yaml') as job_file:
+    with open(job) as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
     if sheet_width <= 1:
         sheet_width = job.sheet_width * sheet_width
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
 
-    with VirtualMachine(job=job, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
+    with VirtualMachine(job=job, machine=machine, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
         limit_power_steps = int((virtual_machine.lines - 1 ) / (max_passes - min_passes + 1))
         power_steps = min(power_steps, limit_power_steps)
         power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
