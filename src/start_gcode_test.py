@@ -82,8 +82,8 @@ class VirtualMachine:
         self.gcode += self.snippets.fence.format(x=self.width * column + self.axis_width, y=self.height * row + self.axis_height, speed=250) + '\n'
 
     def write_at(self, row, column, number, prepend=None):
-        self.position(0, 0)
-        self.gcode += 'G91\n'
+
+        self.gcode += 'G90\n'
 
         if prepend is None:
             self.axes_writing[row + 1][column] = f'{int(number)}'
@@ -97,6 +97,7 @@ class VirtualMachine:
             y = self.axis_height / 2
             nstring = f'{prepend:<2}d{nstring}'  # letter d go down and left
             self.gcode += f'G0 X{self.axis_width + column * self.width} Y{y}\n'
+        self.gcode += 'G91\n'
 
         for digit in nstring:
             self.gcode += self.digits[f'{digit}'].format(power=self.axes_power, speed=self.axes_speed) + '\n'
