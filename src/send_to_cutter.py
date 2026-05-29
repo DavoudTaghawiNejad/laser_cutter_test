@@ -121,7 +121,7 @@ class LaserStreamer:
                 return
             time.sleep(0.05)
 
-    def send(self, command: str, line_number: Optional[int] = None) -> str:
+    def send(self, command: str, line_number: int = -1) -> str:
         """Send one G-code command and return the controller's ``ok``/``error:`` line.
 
         Any informational lines the controller sends *before* the ``ok``/``error:``
