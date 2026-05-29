@@ -110,7 +110,16 @@ class LaserStreamer:
         self.close()
         return False  # never swallow exceptions
 
-    # --- Sending ----------------------------------------------------------
+    def _wait_for_buffer(self) -> None:
+        while True:
+            self._serial.write(b"?")
+            self._serial.flush()
+            status = self._serial.readline().decode("ascii", errors="replace").strip()
+            m = re.search(r"Bf:\d+,(\d+)", status)
+            if m and int(m.group(1)) >= 512:
+                print('.', end='')
+                return
+            time.sleep(0.05)
 
     def send(self, command: str, line_number: Optional[int] = None) -> str:
         """Send one G-code command and return the controller's ``ok``/``error:`` line.
@@ -127,9 +136,11 @@ class LaserStreamer:
                          verbose output.  Has no effect when ``self.verbose`` is
                          ``False``.
         """
-        if self._serial is None:
-            raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
-        if command.upper().startswith('$H') or command.upper().startswith('M0'):
+        if self.verbose:
+            print(f"[{line_number + 1}]  >> {command.strip()!r} ", end='')
+        self._wait_for_buffer()
+        command = command.split(';')[0].strip()
+        if command.upper().startswith(('$H', 'M0', 'G92')):
             self._serial.timeout = self.homeing_timeout
         else:
             self._serial.timeout = self.timeout
@@ -147,14 +158,17 @@ class LaserStreamer:
                         continue
                     if resp.startswith("ok") or resp.startswith("error"):
                         if self.verbose:
-                            prefix = f"[line {line_number}]" if line_number is not None else "[send]"
                             for info in info_lines:
-                                print(f"{prefix}    <-  {info!r}")
-                            print(f"{prefix} >> {command.strip()!r}  ->  {resp!r}")
-                        return resp
+                                print()
+                                print(info, end='')
+                            print(f" ->  {resp!r}")
+                        if resp.startswith("ok"):
+                            return resp
+                        else:
+                            raise GrblError(resp, line_number + 1)
                     info_lines.append(resp)
 
-            raise TimeoutError(f"No response from controller for: {command!r}")
+            raise TimeoutError(f"No response from controller for {command!r} in {line_number + 1}")
         except (Exception, KeyboardInterrupt):
             self._serial.write(("M5\n").encode("ascii"))
             self._serial.flush()
@@ -175,19 +189,12 @@ class LaserStreamer:
 
         For a file:  ``laser.stream(open('job.gcode').read())``.
         """
-        i = 0
-        try:
-            for raw in progress(gcode.splitlines()):
-                line = self._clean(raw)
-                if not line:
-                    continue
-                i += 1
-                resp = self.send(line, line_number=i)
-                if resp.startswith("error"):
-                    raise GrblError(resp, line)
-        finally:
-            self.send("M5")
-            print("M5 sent (LaserStreamer.stream)")
+        for i, raw in enumerate(progress(gcode.splitlines())):
+            line = self._clean(raw)
+            if not line:
+                continue
+            self.send(line, line_number=i)
+
 
     def stream_from_file(self, filename):
         with open(filename) as f:
