@@ -88,7 +88,7 @@ class VirtualMachine:
         if prepend is None:
             self.axes_writing[row + 1][column] = f'{int(number)}'
             nstring = str(number)
-            self.gcode += f'G0 X0 Y{self.axis_height + row * self.height}\n'
+            self.gcode += f'G0 X0 Y{self.axis_height + row * self.height} F10000\n'
         else:
             self.axes_writing[row][column + 1] = f'{prepend}-{int(number // 10)}'
             nstring = f'{number // 10:<2}'
@@ -96,7 +96,7 @@ class VirtualMachine:
                 nstring = f'l{nstring[1:]}'
             y = self.axis_height / 2
             nstring = f'{prepend:<2}d{nstring}'  # letter d go down and left
-            self.gcode += f'G0 X{self.axis_width + column * self.width} Y{y}\n'
+            self.gcode += f'G0 X{self.axis_width + column * self.width} Y{y} F10000\n'
         self.gcode += 'G91\n'
 
         for digit in nstring:
