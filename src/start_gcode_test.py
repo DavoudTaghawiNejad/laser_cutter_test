@@ -9,7 +9,7 @@ from tqdm import tqdm as progress
 
 
 class VirtualMachine:
-    def __init__(self, job, laser, to_cutter, sheet_width, sheet_height, machine, output_filename):
+    def __init__(self, job, laser, to_cutter, verbose, sheet_width, sheet_height, machine, output_filename):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
@@ -34,6 +34,7 @@ class VirtualMachine:
         self.hard_column_offset = 0
         self.hard_row_offset = 0
         self.laser = laser
+        self.verbose = verbose
 
     def __enter__(self):
         return self
@@ -43,7 +44,7 @@ class VirtualMachine:
             self.remove_power_on_gcode()
         self.save()
         if self.to_cutter:
-            with LaserStreamer(self.machine) as laser_cutter:
+            with LaserStreamer(self.machine, verbose=self.verbose) as laser_cutter:
                 laser_cutter.stream(self.gcode)
 
     def save(self, output_filename=None):
@@ -133,9 +134,11 @@ class VirtualMachine:
 @plac.opt('sheet_width', abbrev='sw', type=float, help="Optional: Fraction of sheet width defined in job yaml")
 @plac.opt('sheet_height', abbrev='sh', type=float, help="Optional: Fraction of sheet hight defined in job yaml")
 @plac.flg('fence_only', help="Only mark the fence")
+@plac.flg('verbose', help="Verbose")
 def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
              power_steps=99999, speed_steps=99999, sheet_width=1, sheet_height=1,
-             job='job.yaml', machine='machine.yaml', output='output', laser=False, to_cutter=False, fence_only=False):
+             job='job.yaml', machine='machine.yaml', output='output',
+             laser=False, to_cutter=False, fence_only=False, verbose=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -166,7 +169,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
 
-    with VirtualMachine(job=job, laser=laser, machine=machine, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
+    with VirtualMachine(job=job, laser=laser, machine=machine, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output, verbose=verbose) as virtual_machine:
         limit_power_steps = int((virtual_machine.lines - 1 ) / (max_passes - min_passes + 1))
         power_steps = min(power_steps, limit_power_steps)
         power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
