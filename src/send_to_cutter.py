@@ -24,7 +24,6 @@ Requires `pyserial`, `PyYAML`, and `plac` (`pip3 install pyserial PyYAML plac`).
 import re
 import time
 from typing import Iterable, Iterator, Optional, Tuple
-
 import serial
 import yaml
 from tqdm import tqdm as progress
@@ -52,11 +51,14 @@ class LaserStreamer:
         timeout: 2.0
         wake_delay: 2.0
         homeing_timeout: 10.0
+
+    Pass ``verbose=True`` to log each line number and controller response to
+    stdout as the job streams.
     """
 
     DEFAULT_SHUTDOWN = ("M5",)  # laser off
 
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, verbose: bool = False):
         with open(config_path, "r") as f:
             cfg = yaml.safe_load(f) or {}
         if not isinstance(cfg, dict):
@@ -71,6 +73,7 @@ class LaserStreamer:
         self.timeout: float = cfg.get("timeout", 2.0)
         self.wake_delay: float = cfg.get("wake_delay", 2.0)
         self.homeing_timeout: float = cfg.get("homeing_timeout", 10.0)
+        self.verbose: bool = verbose
         self._serial: Optional[serial.Serial] = None
         print(f"Loaded machine config from {config_path}")
 
@@ -100,7 +103,6 @@ class LaserStreamer:
         finally:
             self._serial.close()
 
-
     def __enter__(self) -> "LaserStreamer":
         return self.open()
 
@@ -110,8 +112,21 @@ class LaserStreamer:
 
     # --- Sending ----------------------------------------------------------
 
-    def send(self, command: str) -> str:
-        """Send one G-code command and return the controller's `ok`/`error:` line."""
+    def send(self, command: str, line_number: Optional[int] = None) -> str:
+        """Send one G-code command and return the controller's ``ok``/``error:`` line.
+
+        Any informational lines the controller sends *before* the ``ok``/``error:``
+        terminator (e.g. the firmware string returned by ``$I``) are collected and,
+        when ``self.verbose`` is ``True``, printed individually before the final
+        status line.  The return value is always the terminating ``ok``/``error:``
+        string, preserving backwards compatibility.
+
+        Args:
+            command:     The G-code command string to send.
+            line_number: Optional 1-based line number used by :meth:`stream` for
+                         verbose output.  Has no effect when ``self.verbose`` is
+                         ``False``.
+        """
         if self._serial is None:
             raise RuntimeError("Serial port not open. Use open() or a 'with' block.")
         if command.upper().startswith('$H') or command.upper().startswith('M0'):
@@ -119,6 +134,7 @@ class LaserStreamer:
         else:
             self._serial.timeout = self.timeout
         try:
+<<<<<<< HEAD
             self._serial.write((command.strip() + "\n").encode("ascii"))
             self._serial.flush()
             while True:
@@ -129,7 +145,14 @@ class LaserStreamer:
                 if not resp:
                     continue
                 if resp.startswith("ok") or resp.startswith("error"):
+                    if self.verbose:
+                        prefix = f"[line {line_number}]" if line_number is not None else "[send]"
+                        for info in info_lines:
+                            print(f"{prefix}    <-  {info!r}")
+                        print(f"{prefix} >> {command.strip()!r}  ->  {resp!r}")
                     return resp
+                else:
+                    print(resp)
         except (Exception, KeyboardInterrupt):
             self._serial.write(("M5\n").encode("ascii"))
             self._serial.flush()
@@ -137,14 +160,18 @@ class LaserStreamer:
             raise
 
     def stream(self, gcode: str):
-        """Stream a multi-line G-code string
+        """Stream a multi-line G-code string.
 
         Splits `gcode` on newlines and sends each line one-by-one, waiting for
         the controller's `ok` after each. Blank lines and comments (`;` line
         comments and `(...)` inline comments) are stripped. Raises `GrblError`
         immediately on any `error:` response.
 
-        For a file:  `laser.stream(open('job.gcode').read())`.
+        When ``self.verbose`` is ``True``, each sent line is logged to stdout
+        with its 1-based line number (counting only non-blank, non-comment
+        lines) and the controller's response.
+
+        For a file:  ``laser.stream(open('job.gcode').read())``.
         """
         i = 0
         try:
@@ -153,7 +180,7 @@ class LaserStreamer:
                 if not line:
                     continue
                 i += 1
-                resp = self.send(line)
+                resp = self.send(line, line_number=i)
                 if resp.startswith("error"):
                     raise GrblError(resp, line)
         finally:
@@ -164,7 +191,6 @@ class LaserStreamer:
         with open(filename) as f:
             gcode = f.read()
         self.stream(gcode)
-
 
     @staticmethod
     def _clean(line: str) -> str:
@@ -179,9 +205,10 @@ class LaserStreamer:
 def _cli(
     gcode_file: "Path to .gcode file",
     config: "Path to machine YAML config" = "machine.yaml",
+    verbose: ("Print each line number and controller response", "flag", "v") = False,
 ):
     """Stream a G-code file to a GRBL-compatible controller."""
-    with LaserStreamer(config) as laser_cutter:
+    with LaserStreamer(config, verbose=verbose) as laser_cutter:
         laser_cutter.stream_from_file(gcode_file)
 
 if __name__ == "__main__":
