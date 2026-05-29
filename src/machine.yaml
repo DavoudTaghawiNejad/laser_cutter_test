@@ -1,5 +1,5 @@
 # machine.yaml — laser cutter connection settings
-port: /dev/ttyUSB0     # or COM3 on Windows, /dev/ttyACM0 on some boards
+port: /dev/ttyACM0     # or COM3 on Windows, /dev/ttyACM0 on some boards
 baud: 115200
 timeout: 2.0           # seconds to wait for a response line
 homeing_timeout: 20.0
