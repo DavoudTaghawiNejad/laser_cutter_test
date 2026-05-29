@@ -5,10 +5,11 @@ from types import SimpleNamespace
 import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
+from tqdm import tqdm as progress
 
 
 class VirtualMachine:
-    def __init__(self, job, to_cutter, sheet_width, sheet_height, machine, output_filename):
+    def __init__(self, job, laser, to_cutter, sheet_width, sheet_height, machine, output_filename):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
@@ -32,21 +33,27 @@ class VirtualMachine:
         self.to_cutter = to_cutter
         self.hard_column_offset = 0
         self.hard_row_offset = 0
+        self.laser = laser
 
     def __enter__(self):
         return self
 
     def __exit__(self, *arg):
+        if not self.laser:
+            self.remove_power_on_gcode()
         self.save()
         if self.to_cutter:
             with LaserStreamer(self.machine) as laser_cutter:
-                laser_cutter.stream(self.gcode + self.snippets.end)
+                laser_cutter.stream(self.gcode)
 
     def save(self, output_filename=None):
+        self.gcode += self.snippets.end
+        if not self.laser:
+            self.remove_power_on_gcode()
         if output_filename is None:
             output_filename = self.output_filename
         with open(f'{output_filename}.gcode','w') as outputfile:
-            outputfile.write(self.gcode + self.snippets.end)
+            outputfile.write(self.gcode)
         print(f'{output_filename}.yaml saved')
 
     def position(self, row=None, column=None):
@@ -98,7 +105,7 @@ class VirtualMachine:
     def remove_power_on_gcode(self):
         gcode = [line
                  for line in self.gcode.split('\n')
-                 if not line[0:2].strip().upper() in ['M3', 'M4', 'M5', 'M10', 'M11', 'M42']]
+                 if not line.strip().upper().startswith(('M3', 'M4', 'M5'))]
         self.gcode = ('\n').join(gcode)
 
     def print_axes_writing(self):
@@ -159,7 +166,7 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
     if sheet_height <= 1:
         sheet_height = job.sheet_height * sheet_height
 
-    with VirtualMachine(job=job, machine=machine, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
+    with VirtualMachine(job=job, laser=laser, machine=machine, to_cutter=to_cutter, sheet_width=sheet_width, sheet_height=sheet_height, output_filename=output) as virtual_machine:
         limit_power_steps = int((virtual_machine.lines - 1 ) / (max_passes - min_passes + 1))
         power_steps = min(power_steps, limit_power_steps)
         power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
@@ -195,7 +202,8 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
         virtual_machine.set_machine_origin_to_graph_origin()
         column = 0
         for num_passes in range(min_passes, max_passes + 1):
-            for _ in range(power_steps):
+            print(f"Passes: {num_passes}")
+            for _ in progress(range(power_steps)):
                 power = int(round(power_min + column * power_step_size, -1))
                 for row in range(speed_steps):
                     speed = int(round(speed_min + row * speed_step_size, -1))
@@ -203,7 +211,6 @@ def generate(power_min, power_max, speed_min, speed_max, min_passes, max_passes,
                 column += 1
 
         if not laser:
-            virtual_machine.remove_power_on_gcode()
             print("===============================================")
             print("Laser not switched on generated only movement !")
             print("===============================================")
