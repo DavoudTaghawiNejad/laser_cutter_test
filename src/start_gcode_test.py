@@ -190,15 +190,17 @@ class VirtualMachine:
                 self.draw_at(row, column, power, speed, num_passes)
         return power
 
+    def info(self):
+        self.gcode += self.snippets.info
+
 
 def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
              sheet_width=1, sheet_height=1,
              passes_on_y=False,
              job='job.yaml', machine='machine.yaml', output='output',
-             laser=False, to_cutter=False, fence_only=False, verbose=False):
+             laser=False, to_cutter=False, fence_only=False, verbose=False, info=False):
 
-    power_max = int(power_max * 10)
-    power_min = int(power_min * 10)
+
     with open(job) as job_file:
         job = SimpleNamespace(**yaml.safe_load(job_file))
     if sheet_width <= 1:
@@ -209,6 +211,11 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
     with VirtualMachine(job=job, laser=laser, machine=machine, to_cutter=to_cutter,
                         sheet_width=sheet_width, sheet_height=sheet_height, passes_on_y=passes_on_y,
                         output_filename=output, verbose=verbose) as virtual_machine:
+        if info:
+            virtual_machine.info()
+            return
+        power_max = int(power_max * 10)
+        power_min = int(power_min * 10)
 
         try:
             virtual_machine.calculate_steps(
@@ -248,11 +255,12 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
 @plac.flg('fence_only', help="Only mark the fence")
 @plac.flg('verbose', help="Verbose")
 @plac.flg('passes_on_y', help="Passes on y axis")
-def main(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
+@plac.flg('info', abbrev='info', help="Print machine info")
+def main(power_min=None, power_max=None, speed_min=None, speed_max=None, passes_min=None, passes_max=None,
              sheet_width=1, sheet_height=1,
              passes_on_y=False,
              job='job.yaml', machine='machine.yaml', output='output',
-             laser=False, to_cutter=False, fence_only=False, verbose=False):
+             laser=False, to_cutter=False, fence_only=False, verbose=False, info=False):
     """ A script that generates a gcode matrix with different power, speed, and pass number combinations to find optimal laser cutter setting.
 
 
@@ -274,11 +282,10 @@ def main(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
     The gcode viewer at https://nraynaud.github.io/webgcode/ works.
 
     """
-
     generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
              sheet_width, sheet_height,
              passes_on_y, job, machine, output,
-             laser, to_cutter, fence_only, verbose)
+             laser, to_cutter, fence_only, verbose, info)
 
 
 if __name__ =="__main__":
