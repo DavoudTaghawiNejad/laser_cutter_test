@@ -117,7 +117,6 @@ class LaserStreamer:
             status = self._serial.readline().decode("ascii", errors="replace").strip()
             m = re.search(r"Bf:\d+,(\d+)", status)
             if m and int(m.group(1)) >= 512:
-                print('.', end='')
                 return
             time.sleep(0.05)
 
