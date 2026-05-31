@@ -22,9 +22,9 @@ class VirtualMachine:
         self.axis_height = 2 * self.digits['letter_height'] + self.digits['axis_distance']
         self.width = max(job.object_width, 2 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
         self.height = max(job.object_height, self.digits['letter_height'])
-        self.lines = int((sheet_width - self.axis_width) / self.width)
-        self.columns = int((sheet_height - self.axis_height) / self.height)
-        self.axes_writing = [['' for _ in range(self.lines)] for __ in range(self.columns)]
+        self.columns = int((sheet_width - self.axis_width) / self.width)
+        self.rows = int((sheet_height - self.axis_height) / self.height)
+        self.axes_writing = [['' for _ in range(self.columns + 1)] for __ in range(self.rows + 1)]
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
         self.x = 0
