@@ -149,41 +149,39 @@ class VirtualMachine:
             raise ValueError("More passes than rows, reduce passes or set speed_max = speed_min")
 
         if power_min != power_max:
-            power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
+            self.power_step_size = (power_max - power_min) / (power_steps - 1)  # minus 1 to include upper bound
         else:
-            power_step_size = 0
+            self.power_step_size = 0
         if speed_max != speed_min:
-            speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
+            self.speed_step_size = (speed_max - speed_min) / (speed_steps - 1)  # minus one to include upper bound
         else:
-            speed_step_size = 0
+            self.speed_step_size = 0
 
         self.power_steps = power_steps
         self.speed_steps = speed_steps
 
-        return power_steps, speed_steps, power_step_size, speed_step_size
-
-    def draw_x_axis(self, power_min, power_step_size, passes_min, passes_max):
+    def draw_x_axis(self, power_min, passes_min, passes_max):
         for column in range(self.columns):
-            power = power_min + (column % self.power_steps) * power_step_size
+            power = power_min + (column % self.power_steps) * self.power_step_size
             power = int(round(power, -1))
             num_passes = passes_min + column // self.power_steps
             if num_passes > passes_max:
                 break
             self.write_at(None, column, power, prepend=num_passes, double_line=(self.columns == self.power_steps))
 
-    def draw_y_axis(self, speed_min, speed_step_size, passes_min, passes_max):
+    def draw_y_axis(self, speed_min, passes_min, passes_max):
         for row in range(self.rows):
-            speed = speed_min + (row % self.speed_steps) * speed_step_size
+            speed = speed_min + (row % self.speed_steps) * self.speed_step_size
             num_passes = passes_min + row // self.speed_steps
             if num_passes > passes_max:
                 break
             self.write_at(row, None, round(speed, -1), prepend=num_passes, double_line=(self.rows == self.speed_steps))
 
-    def draw_object_matrix(self, speed_min, speed_step_size, power_min, power_step_size, passes_min, passes_max):
+    def draw_object_matrix(self, speed_min, power_min, passes_min, passes_max):
         for row in range(self.rows):
             for column in range(self.columns):
-                speed = speed_min + (row % self.speed_steps) * speed_step_size
-                power = power_min + (column % self.power_steps) * power_step_size
+                speed = speed_min + (row % self.speed_steps) * self.speed_step_size
+                power = power_min + (column % self.power_steps) * self.power_step_size
                 r = row // self.speed_steps
                 c = column // self.power_steps
                 num_passes = passes_min + max(r, c)
@@ -213,7 +211,7 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
                         output_filename=output, verbose=verbose) as virtual_machine:
 
         try:
-            power_steps, speed_steps, power_step_size, speed_step_size = virtual_machine.calculate_steps(
+            virtual_machine.calculate_steps(
                 power_min, power_max, speed_min, speed_max, passes_min, passes_max, job)
         except ValueError as error:
             print(f'Error: {error}')
@@ -224,8 +222,8 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
         if fence_only:
             return
 
-        virtual_machine.draw_x_axis(power_min, power_step_size, passes_min, passes_max)
-        virtual_machine.draw_y_axis(speed_min, speed_step_size, passes_min, passes_max)
+        virtual_machine.draw_x_axis(power_min, passes_min, passes_max)
+        virtual_machine.draw_y_axis(speed_min, passes_min, passes_max)
 
         virtual_machine.print_axes_writing()
 
