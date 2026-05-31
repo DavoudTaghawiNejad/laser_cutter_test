@@ -16,9 +16,11 @@ class VirtualMachine:
             self.digits = rename_digit_dict(yaml.safe_load(digits_file))
         self.output_filename = output_filename
         self.machine = machine
-        self.axis_width = 5 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_letters']
-        self.axis_height = 2 * self.digits['letter_height']
-        self.width = max(job.object_width, 2 * (self.digits['letter_width']) + self.digits['distance_between_letters'] + self.digits['distance_between_numbers'])
+        self.axis_width = (5 * (self.digits['letter_width']
+                           + self.digits['distance_between_letters'])
+                           + self.digits['axis_distance'])
+        self.axis_height = 2 * self.digits['letter_height'] + self.digits['axis_distance']
+        self.width = max(job.object_width, 2 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
         self.height = max(job.object_height, self.digits['letter_height'])
         self.lines = int((sheet_width - self.axis_width) / self.width)
         self.columns = int((sheet_height - self.axis_height) / self.height)
