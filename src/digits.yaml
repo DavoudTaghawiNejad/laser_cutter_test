@@ -175,7 +175,7 @@ dash: |
   M5
   G0 Y-1.7
 
-d: |  # down two digits left
+carrier_return: |
   M5
   G0 X-3.0 Y-3.0    ; down two digits left
 
