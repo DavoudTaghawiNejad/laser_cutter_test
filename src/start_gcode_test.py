@@ -19,15 +19,15 @@ class VirtualMachine:
                            + self.digits['distance_between_letters'])
                            + self.digits['axis_distance'])
         self.axis_height = 2 * self.digits['letter_height'] + self.digits['axis_distance']
-        self.width = max(job.object_width, 2 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
-        self.height = max(job.object_height, self.digits['letter_height'])
-        self.columns = int((sheet_width - self.axis_width) / self.width)
-        self.rows = int((sheet_height - self.axis_height) / self.height)
+        self.object_width = max(job.object_width, 2 * (self.digits['letter_width'] + self.digits['distance_between_letters']) + self.digits['distance_between_numbers'])
+        self.object_height = max(job.object_height, self.digits['letter_height'])
+        self.columns = int((sheet_width - self.axis_width) / self.object_width)
+        self.rows = int((sheet_height - self.axis_height) / self.object_height)
         self.axes_writing = [['' for _ in range(self.columns + 1)] for __ in range(self.rows + 1)]
         self.axes_power = job.axes_power
         self.axes_speed = job.axes_speed
-        self.border_x = self.width * self.columns + self.axis_width
-        self.border_y = self.height * self.rows + self.axis_height
+        self.border_x = self.object_width * self.columns + self.axis_width
+        self.border_y = self.object_height * self.rows + self.axis_height
         self.x = 0
         self.y = 0
         self.object = job.object
@@ -67,11 +67,11 @@ class VirtualMachine:
 
     def position(self, row=None, column=None):
         if column is not None:
-            x = self.width * column + self.hard_column_offset
+            x = self.object_width * column + self.hard_column_offset
         else:
             x = self.x
         if row is not None:
-            y = self.height * row + self.hard_row_offset
+            y = self.object_height * row + self.hard_row_offset
         else:
             y = self.y
         self.x = x
@@ -102,10 +102,10 @@ class VirtualMachine:
 
         if column is None:
             self.axes_writing[row + 1][0] = nstring
-            self.gcode += f'G0 X0 Y{self.axis_height + row * self.height + up_for_extra_line} F10000\n'
+            self.gcode += f'G0 X0 Y{self.axis_height + row * self.object_height + up_for_extra_line} F10000\n'
         elif row is None:
             self.axes_writing[0][column + 1] = nstring
-            self.gcode += f'G0 X{self.axis_width + column * self.width} Y{up_for_extra_line} F10000\n'
+            self.gcode += f'G0 X{self.axis_width + column * self.object_width} Y{up_for_extra_line} F10000\n'
         else:
             raise Exception()
         self.gcode += 'G91\n'
