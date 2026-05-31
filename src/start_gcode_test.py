@@ -46,6 +46,10 @@ class VirtualMachine:
     def __exit__(self, *arg):
         if not self.laser:
             self.remove_power_on_gcode()
+            print("===============================================")
+            print("Laser not switched on generated only movement !")
+            print("===============================================")
+
         self.save()
         if self.to_cutter:
             with LaserStreamer(self.machine, verbose=self.verbose) as laser_cutter:
@@ -227,12 +231,7 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
 
         # Draw objects
         virtual_machine.set_machine_origin_to_graph_origin()
-        power = virtual_machine.draw_object_matrix(speed_min, speed_step_size, power_min, power_step_size, passes_min, passes_max)
-
-        if not laser:
-            print("===============================================")
-            print("Laser not switched on generated only movement !")
-            print("===============================================")
+        power = virtual_machine.draw_object_matrix(speed_min, power_min, passes_min, passes_max)
 
 
 @plac.pos('power_min', type=float, help="Smallest power setting (percent, accepts one digit after decimal point)")
