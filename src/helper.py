@@ -10,6 +10,8 @@ def rename_digit_dict(data):
             transformed['.'] = value
         elif key == 'dash':
             transformed['-'] = value
+        elif key == 'carrier_return':
+            transformed['-'] = value
         else:
             transformed[key] = value
 

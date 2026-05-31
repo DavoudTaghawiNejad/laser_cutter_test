@@ -94,7 +94,7 @@ class VirtualMachine:
             up_for_extra_line = 0
         else:
             up_for_extra_line = self.digits['letter_height']
-            nstring = f'{prepend:>2}d{int(number):<2}'  # letter d go down and left
+            nstring = f'{prepend:>2}-{int(number):<2}'  # letter d go down and left
 
         if column is None:
             self.axes_writing[row + 1][0] = nstring
