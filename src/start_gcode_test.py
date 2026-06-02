@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import plac
 from send_to_cutter import LaserStreamer
 from helper import rename_digit_dict
-from tqdm import tqdm as progress
+from tqdm import trange
 
 
 class VirtualMachine:
@@ -82,9 +82,9 @@ class VirtualMachine:
         self.hard_column_offset = self.axis_width
         self.hard_row_offset = self.axis_height
 
-    def draw_at(self, row, column, power, speed, num_passes):
+    def draw_at(self, row, column, power, speed):
         self.position(row, column)
-        self.gcode += '\n'.join([self.object.format(power=power, speed=speed) for _ in range(num_passes)]) + '\nM5\n'
+        self.gcode += self.object.format(power=power, speed=speed) + '\nM5\n'
 
     def mark_fence_posts(self):
         self.gcode += self.snippets.fence.format(x=self.border_x, y=self.border_y, speed=250) + '\n'
@@ -178,16 +178,17 @@ class VirtualMachine:
             self.write_at(row, None, round(speed, -1), prepend=num_passes, double_line=(self.rows == self.speed_steps))
 
     def draw_object_matrix(self, speed_min, power_min, passes_min, passes_max):
-        for row in range(self.rows):
-            for column in range(self.columns):
-                speed = speed_min + (row % self.speed_steps) * self.speed_step_size
-                power = power_min + (column % self.power_steps) * self.power_step_size
-                r = row // self.speed_steps
-                c = column // self.power_steps
-                num_passes = passes_min + max(r, c)
-                if num_passes > passes_max:
-                    break
-                self.draw_at(row, column, power, speed, num_passes)
+        for pa in trange(passes_max):
+            for row in range(self.rows):
+                for column in range(self.columns):
+                    speed = speed_min + (row % self.speed_steps) * self.speed_step_size
+                    power = power_min + (column % self.power_steps) * self.power_step_size
+                    # if rows is subdivided in passes this calculates which
+                    r = row // self.speed_steps
+                    c = column // self.power_steps  #
+                    num_passes = passes_min + max(r, c)  # r or c from the direction that is not divided into passes is 0, so this calculates the number of passes
+                    if pa < num_passes <= passes_max:
+                        self.draw_at(row, column, power, speed)
         return power
 
     def info(self):
