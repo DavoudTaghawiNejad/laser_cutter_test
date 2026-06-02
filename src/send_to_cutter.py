@@ -160,7 +160,7 @@ class LaserStreamer:
                             print(f"{prefix}    <-  {info!r}")
                         print(f"{prefix} >> {command.strip()!r}  ->  {resp!r}")
                     return resp
-                elif resp.startswith("error")
+                elif resp.startswith("error"):
                     raise GrblError(resp, line_number + 1)
                 else:
                     print(resp)
