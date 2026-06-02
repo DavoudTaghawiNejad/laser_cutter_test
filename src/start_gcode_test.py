@@ -8,7 +8,7 @@ from tqdm import trange
 
 
 class VirtualMachine:
-    def __init__(self, job, laser, to_cutter, verbose, passes_on_y, sheet_width, sheet_height, machine, output_filename):
+    def __init__(self, job, laser, to_cutter, verbose, info, passes_on_y, sheet_width, sheet_height, machine, output_filename):
         with open('snippets.yaml') as snippets_file:
             self.snippets = SimpleNamespace(**yaml.safe_load(snippets_file))
         with open('digits.yaml') as digits_file:
@@ -39,6 +39,7 @@ class VirtualMachine:
         self.laser = laser
         self.verbose = verbose
         self.passes_on_y = passes_on_y
+        self.info = info
 
     def __enter__(self):
         return self
@@ -52,7 +53,7 @@ class VirtualMachine:
 
         self.save()
         if self.to_cutter:
-            with LaserStreamer(self.machine, verbose=self.verbose) as laser_cutter:
+            with LaserStreamer(self.machine, verbose=self.verbose, info=self.info) as laser_cutter:
                 laser_cutter.stream(self.gcode)
 
     def save(self, output_filename=None):
@@ -211,7 +212,7 @@ def generate(power_min, power_max, speed_min, speed_max, passes_min, passes_max,
 
     with VirtualMachine(job=job, laser=laser, machine=machine, to_cutter=to_cutter,
                         sheet_width=sheet_width, sheet_height=sheet_height, passes_on_y=passes_on_y,
-                        output_filename=output, verbose=verbose) as virtual_machine:
+                        output_filename=output, verbose=verbose, info=info) as virtual_machine:
         if info:
             virtual_machine.info()
             return

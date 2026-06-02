@@ -32,10 +32,11 @@ from tqdm import tqdm as progress
 class GrblError(Exception):
     """Raised when the controller returns an `error:` response."""
 
-    def __init__(self, code: str, line: str):
-        self.code = code
+    def __init__(self, line: int, command: str, code: str):
         self.line = line
-        super().__init__(f"Controller returned {code!r} for line: {line!r}")
+        self.command = command
+        self.code = code
+        super().__init__(f"For command {command} controller returned {code!r} for line: {line!r}")
 
 
 _COMMENT_RE = re.compile(r"\([^)]*\)")  # strip (...) inline G-code comments
@@ -58,7 +59,7 @@ class LaserStreamer:
 
     DEFAULT_SHUTDOWN = ("M5",)  # laser off
 
-    def __init__(self, config_path: str, verbose: bool = False):
+    def __init__(self, config_path: str, verbose: bool = False, info: bool = False):
         with open(config_path, "r") as f:
             cfg = yaml.safe_load(f) or {}
         if not isinstance(cfg, dict):
@@ -74,6 +75,7 @@ class LaserStreamer:
         self.wake_delay: float = cfg.get("wake_delay", 2.0)
         self.homeing_timeout: float = cfg.get("homeing_timeout", 10.0)
         self.verbose: bool = verbose
+        self.info: bool = info
         self._serial: Optional[serial.Serial] = None
         print(f"Loaded machine config from {config_path}")
 
@@ -155,15 +157,13 @@ class LaserStreamer:
                     continue
                 if resp.startswith("ok"):
                     if self.verbose:
-                        prefix = f"[line {line_number}]" if line_number is not None else "[send]"
-                        for info in info_lines:
-                            print(f"{prefix}    <-  {info!r}")
-                        print(f"{prefix} >> {command.strip()!r}  ->  {resp!r}")
+                        print(f'[{line_number if line_number is not None else '':>6 }] {command} -> {resp}')
                     return resp
                 elif resp.startswith("error"):
-                    raise GrblError(resp, line_number + 1)
+                    raise GrblError(line_number + 1, command, resp)
                 else:
-                    print(resp)
+                    if self.verbose or self.info:
+                        print(f'[{line_number if line_number is not None else '':>6 }] {command} -> {resp}')
         except (Exception, KeyboardInterrupt):
             self._serial.write(("M5\n").encode("ascii"))
             self._serial.flush()
@@ -210,9 +210,10 @@ def _cli(
     gcode_file: "Path to .gcode file",
     config: "Path to machine YAML config" = "machine.yaml",
     verbose: ("Print each line number and controller response", "flag", "v") = False,
+    info: ("Print machine info", "flag", "i") = False
 ):
     """Stream a G-code file to a GRBL-compatible controller."""
-    with LaserStreamer(config, verbose=verbose) as laser_cutter:
+    with LaserStreamer(config, verbose=verbose, info=info) as laser_cutter:
         laser_cutter.stream_from_file(gcode_file)
 
 if __name__ == "__main__":
