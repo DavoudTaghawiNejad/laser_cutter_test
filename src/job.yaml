@@ -4,163 +4,75 @@
 object_width: 3
 object_height: 6
 sheet_width: 95
-sheet_height: 120
+sheet_height: 70
 axes_power: 250
 axes_speed: 5000
 
 
-object: |  # usb-c connector footprint
-    G0 X0.2203 Y0.06974  ; USB PORT
+object: |  # usb_port_inner_cut_0.1.gcode makes inner line by 0.1 offset and combines overlapping lines to a single line
+    G0 X1.06786 Y0.22218
     M4 S{power}
-    G2 X0.0703 Y0.21974 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y0.57714 F{speed}
-    G1 X0.1629 Y0.65835 F{speed}
-    G1 X1.0703 Y0.66975 F{speed}
-    G1 X1.2089 Y0.57714 F{speed}
-    G1 X1.2203 Y0.21974 F{speed}
-    G1 X1.1277 Y0.08114 F{speed}
-    G1 X0.2203 Y0.06974 F{speed}
+    G1 Y0.5173 F{speed}
+    G1 X0.22275 F{speed}
+    G1 Y0.22218 F{speed}
+    G1 X1.06786 F{speed}
     M5
-    G0 X0.2203
+    G0 X1.06786
+    G0 Y1.02219
     M4 S{power}
-    G2 X0.0703 Y0.21974 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y0.57714 F{speed}
-    G1 X0.1629 Y0.65835 F{speed}
-    G1 X1.0703 Y0.66975 F{speed}
-    G1 X1.2089 Y0.57714 F{speed}
-    G1 X1.2203 Y0.21974 F{speed}
-    G1 X1.1277 Y0.08114 F{speed}
-    G1 X0.2203 Y0.06974 F{speed}
+    G1 X0.22275 F{speed}
+    G1 Y1.31731 F{speed}
+    G1 X1.06786 F{speed}
+    G1 Y1.02219 F{speed}
     M5
-    G0 Y0.86975
+    G0 X1.06786
+    G0 X1.0706 Y1.82036
     M4 S{power}
-    G1 X1.1277 Y0.88115 F{speed}
-    G1 X1.2203 Y1.01975 F{speed}
-    G1 X1.2089 Y1.37715 F{speed}
-    G1 X1.0703 Y1.46975 F{speed}
-    G1 X0.1629 Y1.45835 F{speed}
-    G1 X0.0817 Y1.37715 F{speed}
-    G1 X0.0703 Y1.01975 F{speed}
-    G3 X0.2203 Y0.86975 I0.14988 J-0.00012 F{speed}
+    G1 X0.22 Y1.81975 F{speed}
     M5
-    G0 X0.2203
+    G0 Y2.31976
     M4 S{power}
-    G2 X0.0703 Y1.01975 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y1.37715 F{speed}
-    G1 X0.1629 Y1.45835 F{speed}
-    G1 X1.0703 Y1.46975 F{speed}
-    G1 X1.2089 Y1.37715 F{speed}
-    G1 X1.2203 Y1.01975 F{speed}
-    G1 X1.1277 Y0.88115 F{speed}
-    G1 X0.2203 Y0.86975 F{speed}
+    G1 X1.0706 Y2.32036 F{speed}
     M5
-    G0 Y5.66979
+    G0 Y2.82037
     M4 S{power}
-    G2 X0.0703 Y5.81979 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y6.17719 F{speed}
-    G1 X0.1629 Y6.25839 F{speed}
-    G1 X1.0703 Y6.26979 F{speed}
-    G1 X1.2089 Y6.17719 F{speed}
-    G1 X1.2203 Y5.81979 F{speed}
-    G1 X1.1277 Y5.68119 F{speed}
-    G1 X0.2203 Y5.66979 F{speed}
+    G1 X0.22 Y2.81976 F{speed}
     M5
-    G0 X0.2203
+    G0 Y3.31977
     M4 S{power}
-    G2 X0.0703 Y5.81979 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y6.17719 F{speed}
-    G1 X0.1629 Y6.25839 F{speed}
-    G1 X1.0703 Y6.26979 F{speed}
-    G1 X1.2089 Y6.17719 F{speed}
-    G1 X1.2203 Y5.81979 F{speed}
-    G1 X1.1277 Y5.68119 F{speed}
-    G1 X0.2203 Y5.66979 F{speed}
+    G1 X1.0706 Y3.32037 F{speed}
     M5
-    G0 Y6.4698
+    G0 Y3.82037
     M4 S{power}
-    G2 X0.0703 Y6.6198 I-0.00012 J0.14988 F{speed}
-    G1 X0.0817 Y6.9772 F{speed}
-    G1 X0.1629 Y7.0584 F{speed}
-    G1 X1.0703 Y7.0698 F{speed}
-    G1 X1.2089 Y6.9772 F{speed}
-    G1 X1.2203 Y6.6198 F{speed}
-    G1 X1.1277 Y6.4812 F{speed}
-    G1 X0.2203 Y6.4698 F{speed}
+    G1 X0.22 Y3.81977 F{speed}
     M5
-    G0 X0.2203
+    G0 Y4.31978
     M4 S{power}
-    G1 X1.1277 Y6.4812 F{speed}
-    G1 X1.2203 Y6.6198 F{speed}
-    G1 X1.2089 Y6.9772 F{speed}
-    G1 X1.0703 Y7.0698 F{speed}
-    G1 X0.1629 Y7.0584 F{speed}
-    G1 X0.0817 Y6.9772 F{speed}
-    G1 X0.0703 Y6.6198 F{speed}
-    G3 X0.2203 Y6.4698 I0.14988 J-0.00012 F{speed}
+    G1 X1.0706 Y4.32038 F{speed}
     M5
-    G0 X0.1453 Y2.16976
+    G0 Y4.82038
     M4 S{power}
-    G1 X1.174 Y2.17576 F{speed}
-    G3 X1.2146 Y2.42376 I-0.15137 J0.15211 F{speed}
-    G1 X1.1453 Y2.47036 F{speed}
-    G1 X0.1166 Y2.46436 F{speed}
-    G3 X0.1453 Y2.16976 I0.10753 J-0.13822 F{speed}
+    G1 X0.22 Y4.81978 F{speed}
     M5
-    G0 Y1.66975
+    G0 Y5.31978
     M4 S{power}
-    G2 X0.1166 Y1.96436 I0.07883 J0.15638 F{speed}
-    G1 X1.1453 Y1.97036 F{speed}
-    G1 X1.2146 Y1.92376 F{speed}
-    G2 X1.174 Y1.67575 I-0.19197 J-0.0959 F{speed}
-    G1 X0.1453 Y1.66975 F{speed}
+    G1 X1.0706 Y5.32039 F{speed}
     M5
-    G0 Y2.66976
+    G0 X1.06786 Y5.82223
     M4 S{power}
-    G1 X1.174 Y2.67576 F{speed}
-    G3 X1.2146 Y2.92376 I-0.15137 J0.15211 F{speed}
-    G1 X1.1453 Y2.97037 F{speed}
-    G1 X0.1166 Y2.96437 F{speed}
-    G3 X0.1453 Y2.66976 I0.10753 J-0.13822 F{speed}
+    G1 Y6.11735 F{speed}
+    G1 X0.22275 F{speed}
+    G1 Y5.82223 F{speed}
+    G1 X1.06786 F{speed}
     M5
-    G0 Y3.16977
+    G0 X1.06786
+    G0 Y6.62224
     M4 S{power}
-    G1 X1.174 Y3.17577 F{speed}
-    G3 X1.2146 Y3.42377 I-0.15137 J0.15211 F{speed}
-    G1 X1.1453 Y3.47037 F{speed}
-    G1 X0.1166 Y3.46437 F{speed}
-    G3 X0.1453 Y3.16977 I0.10753 J-0.13822 F{speed}
+    G1 X0.22275 F{speed}
+    G1 X0.22275 Y6.91736 F{speed}
+    G1 X1.06786 F{speed}
+    G1 X1.06786 Y6.62224 F{speed}
     M5
-    G0 Y3.66977
-    M4 S{power}
-    G2 X0.1166 Y3.96437 I0.07883 J0.15638 F{speed}
-    G1 X1.1453 Y3.97037 F{speed}
-    G1 X1.2146 Y3.92377 F{speed}
-    G2 X1.174 Y3.67577 I-0.19197 J-0.0959 F{speed}
-    G1 X0.1453 Y3.66977 F{speed}
-    M5
-    G0 Y4.16978
-    M4 S{power}
-    G1 X1.174 Y4.17578 F{speed}
-    G3 X1.2146 Y4.42378 I-0.15137 J0.15211 F{speed}
-    G1 X1.1453 Y4.47038 F{speed}
-    G1 X0.1166 Y4.46438 F{speed}
-    G3 X0.1453 Y4.16978 I0.10753 J-0.13822 F{speed}
-    M5
-    G0 Y4.66978
-    M4 S{power}
-    G2 X0.1166 Y4.96438 I0.07883 J0.15638 F{speed}
-    G1 X1.1453 Y4.97038 F{speed}
-    G1 X1.2146 Y4.92378 F{speed}
-    G2 X1.174 Y4.67578 I-0.19197 J-0.0959 F{speed}
-    G1 X0.1453 Y4.66978 F{speed}
-    M5
-    G0 Y5.16978
-    M4 S{power}
-    G1 X1.174 Y5.17578 F{speed}
-    G3 X1.2146 Y5.42379 I-0.15137 J0.15211 F{speed}
-    G1 X1.1453 Y5.47039 F{speed}
-    G1 X0.1166 Y5.46439 F{speed}
-    G3 X0.1453 Y5.16978 I0.10753 J-0.13822 F{speed}
-    M5
+    G0 X1.06786
     M5 ;Ensure laser is off
     G0 X0 Y0 ;Return to origin
