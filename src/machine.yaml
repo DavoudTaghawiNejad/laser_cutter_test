@@ -1,6 +1,6 @@
 # machine.yaml — laser cutter connection settings
 port: /dev/ttyACM0     # or COM3 on Windows, /dev/ttyACM0 on some boards
 baud: 115200
-timeout: 2.0           # seconds to wait for a response line
+timeout: 10.0           # seconds to wait for a response line
 homeing_timeout: 20.0
 wake_delay: 2.0        # seconds to wait after wake-up before streaming
